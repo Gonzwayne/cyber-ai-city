@@ -1,1224 +1,883 @@
 <!DOCTYPE html>
 <html lang="es" class="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI CyberCity NFT - Task Management & Free Hosting Deploy (BNB Chain)</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js" type="text/javascript"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Cyber City - Web3 & Autonomous Agents Metaverse</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            cyber: {
+              black: '#090a0f',
+              dark: '#121520',
+              card: '#1a1e2e',
+              accent: '#00f0ff',
+              neon: '#7000ff',
+              gold: '#ffd700',
+              pink: '#ff007f',
+              success: '#00ff88'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Ethers.js v5.7.2 for Web3 Interaction -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js" type="text/javascript"></script>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
     
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        cyber: {
-                            black: '#05070e',
-                            card: 'rgba(12, 17, 32, 0.88)',
-                            cyan: '#00f3ff',
-                            magenta: '#ff0055',
-                            purple: '#a855f7',
-                            yellow: '#ffe600',
-                            green: '#00ff66',
-                            border: 'rgba(0, 243, 255, 0.3)'
-                        }
-                    },
-                    fontFamily: {
-                        orbitron: ['Orbitron', 'sans-serif'],
-                        rajdhani: ['Rajdhani', 'sans-serif']
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        body {
-            background-color: #030408;
-            color: #e2e8f0;
-            font-family: 'Rajdhani', sans-serif;
-            overflow-x: hidden;
-        }
+    body {
+      background-color: #090a0f;
+      color: #e2e8f0;
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+    }
+    
+    /* Neon Glow Effects */
+    .glow-cyan {
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+    }
+    .glow-purple {
+      box-shadow: 0 0 15px rgba(112, 0, 255, 0.4);
+    }
+    .glow-pink {
+      box-shadow: 0 0 15px rgba(255, 0, 127, 0.4);
+    }
+    .text-glow {
+      text-shadow: 0 0 8px rgba(0, 240, 255, 0.7);
+    }
+    
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #090a0f;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1a1e2e;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #00f0ff;
+    }
 
-        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-height: 520px;
+      border-radius: 0.75rem;
+      overflow: hidden;
+      background: #0d101d;
+    }
 
-        .glow-cyan { box-shadow: 0 0 15px rgba(0, 243, 255, 0.4); }
-        .glow-magenta { box-shadow: 0 0 15px rgba(255, 0, 85, 0.4); }
-        .glow-green { box-shadow: 0 0 15px rgba(0, 255, 102, 0.4); }
-        
-        .text-glow-cyan { text-shadow: 0 0 8px rgba(0, 243, 255, 0.7); }
-        .text-glow-magenta { text-shadow: 0 0 8px rgba(255, 0, 85, 0.7); }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
 
-        .scanline-container {
-            position: relative;
-            overflow: hidden;
-        }
-        .scanline-container::after {
-            content: " ";
-            display: block;
-            position: absolute;
-            top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
-            z-index: 20;
-            background-size: 100% 3px, 6px 100%;
-            pointer-events: none;
-        }
-
-        .hologram-card {
-            background: linear-gradient(135deg, rgba(0, 243, 255, 0.08) 0%, rgba(168, 85, 247, 0.12) 50%, rgba(255, 0, 85, 0.08) 100%);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(0, 243, 255, 0.35);
-        }
-
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #05070e; }
-        ::-webkit-scrollbar-thumb { background: #00f3ff; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #ff0055; }
-
-        canvas { cursor: pointer; }
-
-        .speech-bubble {
-            animation: floatBubble 0.3s ease-out forwards;
-            transform-origin: bottom center;
-        }
-        @keyframes floatBubble {
-            from { opacity: 0; transform: translateY(8px) scale(0.9); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-    </style>
+    /* Speech Bubble Styling */
+    .speech-bubble {
+      position: absolute;
+      background: rgba(26, 30, 46, 0.95);
+      border: 1px solid #00f0ff;
+      border-radius: 12px;
+      padding: 6px 12px;
+      color: #fff;
+      font-size: 11px;
+      max-width: 180px;
+      pointer-events: none;
+      transform: translate(-50%, -100%);
+      transition: all 0.2s ease;
+      z-index: 20;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+    .speech-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 6px 6px 0;
+      border-style: solid;
+      border-color: #00f0ff transparent;
+      display: block;
+      width: 0;
+    }
+  </style>
 </head>
-<body class="scanline-container min-h-screen flex flex-col justify-between selection:bg-cyber-cyan selection:text-black">
+<body class="bg-cyber-black text-slate-200 antialiased selection:bg-cyber-accent selection:text-black min-h-screen flex flex-col">
 
-    <header class="border-b border-cyber-border bg-slate-950/90 backdrop-blur-md sticky top-0 z-50 px-4 py-3">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-            
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-cyber-cyan to-cyber-purple flex items-center justify-center glow-cyan">
-                    <i class="fa-solid fa-microchip text-black text-xl font-bold"></i>
-                </div>
-                <div>
-                    <h1 class="font-orbitron text-xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyber-cyan via-white to-cyber-magenta">
-                        CYBER-CITY <span class="text-xs px-2 py-0.5 rounded border border-cyber-cyan text-cyber-cyan font-mono">TASKS & DEPLOY</span>
-                    </h1>
-                    <p class="text-xs text-slate-400">Simulación Virtual de IAs Autónomas en BNB Smart Chain</p>
-                </div>
-            </div>
-
-            <!-- Global Metrics -->
-            <div class="flex items-center gap-4 bg-slate-900/90 px-4 py-2 rounded-xl border border-slate-800 text-xs font-mono">
-                <div class="text-center px-2">
-                    <span class="text-slate-400 block text-[10px]">TESORERÍA BSC</span>
-                    <span id="statTotalUSDT" class="text-cyber-green font-bold text-base text-glow-cyan">0 USDT</span>
-                </div>
-                <div class="w-px h-6 bg-slate-800"></div>
-                <div class="text-center px-2">
-                    <span class="text-slate-400 block text-[10px]">IAs REGISTRADAS</span>
-                    <span id="statTotalIAs" class="text-cyber-cyan font-bold text-base">0</span>
-                </div>
-                <div class="w-px h-6 bg-slate-800"></div>
-                <div class="text-center px-2">
-                    <span class="text-slate-400 block text-[10px]">TAREAS EN CURSO</span>
-                    <span id="statActiveTasks" class="text-cyber-yellow font-bold text-base">0</span>
-                </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="flex flex-wrap items-center gap-2">
-                <button onclick="openDeployGuideModal()" class="px-3.5 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-black font-orbitron font-bold text-xs rounded-lg shadow-lg transition-all flex items-center gap-2">
-                    <i class="fa-solid fa-cloud-arrow-up"></i>
-                    <span>Publicar Gratis (Web Live)</span>
-                </button>
-
-                <button id="btnConnectWallet" onclick="connectMetaMask()" class="px-3 py-2 bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-black font-orbitron font-bold text-xs rounded-lg shadow-lg transition-all flex items-center gap-2">
-                    <i class="fa-solid fa-wallet"></i>
-                    <span id="walletBtnText">Conectar MetaMask</span>
-                </button>
-
-                <button onclick="openMintModal()" class="px-3 py-2 bg-gradient-to-r from-cyber-cyan to-blue-600 hover:from-blue-500 hover:to-cyber-cyan text-black font-orbitron font-bold text-xs rounded-lg shadow-lg hover:shadow-cyan-500/50 transition-all flex items-center gap-1.5">
-                    <i class="fa-solid fa-id-card"></i>
-                    Mintear Cédula
-                </button>
-            </div>
+  <header class="border-b border-slate-800 bg-cyber-dark/80 backdrop-blur-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <!-- Logo -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyber-accent to-cyber-neon flex items-center justify-center shadow-lg shadow-cyber-accent/20">
+          <i class="fa-solid fa-city text-black font-bold text-lg"></i>
         </div>
-    </header>
+        <div>
+          <span class="font-mono font-bold text-lg tracking-wider text-white">AI CYBER<span class="text-cyber-accent">CITY</span></span>
+          <span class="hidden sm:inline-block text-xs bg-cyber-accent/10 text-cyber-accent px-2 py-0.5 rounded border border-cyber-accent/30 ml-2 font-mono">BNB MAINNET</span>
+        </div>
+      </div>
 
-    <!-- Treasury Bar -->
-    <div class="bg-slate-950 border-b border-slate-800/80 py-1.5 px-4 text-center font-mono text-[11px] text-slate-400 flex flex-wrap justify-center items-center gap-3">
-        <span class="flex items-center gap-1"><i class="fa-solid fa-network-wired text-yellow-500"></i> Red: <b class="text-slate-300">BNB Smart Chain (0x38)</b></span>
-        <span class="hidden sm:inline text-slate-700">|</span>
-        <span class="flex items-center gap-1">
-            <i class="fa-solid fa-vault text-cyber-green"></i> Wallet Receptora: 
-            <a href="https://bscscan.com/address/0x20629E18fB80de15CdC008FB6098d6e6EBb613ef" target="_blank" class="text-cyber-cyan bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800 hover:underline">0x20629E18fB80de15CdC008FB6098d6e6EBb613ef</a>
+      <!-- Wallet Controls -->
+      <div class="flex items-center gap-3">
+        <!-- Balances Bar -->
+        <div id="wallet-balances" class="hidden md:flex items-center gap-3 text-xs bg-cyber-card/60 px-3 py-1.5 rounded-lg border border-slate-800 font-mono">
+          <div class="flex items-center gap-1.5">
+            <i class="fa-solid fa-coins text-yellow-400"></i>
+            <span id="bnb-balance">0.00</span> <span class="text-slate-400">BNB</span>
+          </div>
+          <div class="h-3 w-px bg-slate-700"></div>
+          <div class="flex items-center gap-1.5">
+            <i class="fa-solid fa-dollar-sign text-emerald-400"></i>
+            <span id="usdt-balance">0.00</span> <span class="text-slate-400">USDT</span>
+          </div>
+        </div>
+
+        <!-- Connect Button -->
+        <button id="btn-connect" onclick="connectWallet()" class="flex items-center gap-2 bg-gradient-to-r from-cyber-accent to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-semibold px-4 py-2 rounded-xl transition duration-200 shadow-md shadow-cyber-accent/20 text-sm">
+          <i class="fa-solid fa-wallet"></i>
+          <span id="btn-connect-text">Conectar Wallet</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col gap-6">
+    
+    <!-- Status & Contract Banner -->
+    <div class="bg-cyber-card/50 border border-slate-800 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <span class="relative flex h-3 w-3">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
         </span>
-    </div>
-
-    <main class="max-w-7xl mx-auto w-full p-4 grid grid-cols-1 lg:grid-cols-12 gap-6 my-2">
-
-        <!-- LEFT COLUMN: Canvas Viewer & Inspector (Col 7) -->
-        <section class="lg:col-span-7 flex flex-col gap-4">
-            
-            <div class="relative bg-slate-950 rounded-2xl border border-cyber-border overflow-hidden shadow-2xl flex flex-col">
-                <div class="p-3 bg-slate-900/95 border-b border-slate-800 flex justify-between items-center z-10">
-                    <div class="flex items-center gap-2">
-                        <span id="canvasViewBadge" class="text-[10px] font-orbitron px-2 py-0.5 rounded bg-cyber-cyan/20 text-cyber-cyan border border-cyber-cyan/30">
-                            MAPA CIUDAD EXTERIOR
-                        </span>
-                        <h3 id="canvasViewTitle" class="text-sm font-orbitron font-bold text-white">Vista Global de la Metrópolis</h3>
-                    </div>
-
-                    <div class="flex gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800 font-orbitron text-xs">
-                        <button id="btnViewExterior" onclick="setViewMode('exterior')" class="px-2.5 py-1 rounded-md text-black bg-cyber-cyan font-bold transition">
-                            <i class="fa-solid fa-city mr-1"></i> Exterior
-                        </button>
-                        <button id="btnViewInterior" onclick="setViewMode('interior')" class="px-2.5 py-1 rounded-md text-slate-400 hover:text-white transition">
-                            <i class="fa-solid fa-door-open mr-1"></i> Interior Edificio
-                        </button>
-                    </div>
-                </div>
-
-                <div class="w-full aspect-[4/3] relative flex items-center justify-center bg-slate-950">
-                    <canvas id="mainCanvas" class="w-full h-full block rounded-b-2xl"></canvas>
-                    <div id="speechOverlay" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
-                </div>
-
-                <div class="p-2.5 bg-slate-900/90 border-t border-slate-800 flex flex-wrap justify-between items-center text-xs text-slate-400 font-mono gap-1">
-                    <span class="text-slate-400 font-bold">Ver Interiores:</span>
-                    <div class="flex flex-wrap gap-1">
-                        <button onclick="switchInteriorBuilding('coworking')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-blue-600 hover:text-white text-blue-400 transition">Coworking</button>
-                        <button onclick="switchInteriorBuilding('resto')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-amber-600 hover:text-white text-amber-400 transition">Restó</button>
-                        <button onclick="switchInteriorBuilding('bar')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-pink-600 hover:text-white text-pink-400 transition">Bar</button>
-                        <button onclick="switchInteriorBuilding('hotel')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-purple-600 hover:text-white text-purple-400 transition">Hotel</button>
-                        <button onclick="switchInteriorBuilding('casas')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-emerald-600 hover:text-white text-emerald-400 transition">Casas</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Building Inspector Box -->
-            <div id="buildingInspector" class="bg-cyber-card rounded-2xl border border-slate-800 p-4 backdrop-blur-md">
-                <div class="flex justify-between items-start mb-3">
-                    <div>
-                        <span id="inspectTag" class="text-[10px] font-orbitron px-2 py-0.5 rounded bg-cyber-cyan/20 text-cyber-cyan border border-cyber-cyan/30">LUGAR SELECCIONADO</span>
-                        <h3 id="inspectTitle" class="text-xl font-orbitron font-bold text-white mt-1">Selecciona un Edificio</h3>
-                        <p id="inspectDesc" class="text-xs text-slate-400">Haz clic en un edificio para ver interactuar a las IAs o enviar trabajos en el Coworking.</p>
-                    </div>
-                    <div id="inspectPriceTag" class="text-right hidden">
-                        <span class="text-xs text-slate-400 block">TARIFA</span>
-                        <span id="inspectPrice" class="text-lg font-orbitron font-bold text-cyber-green">50 USDT</span>
-                    </div>
-                </div>
-
-                <div id="inspectBody" class="mt-3 pt-3 border-t border-slate-800/80 text-sm text-slate-300">
-                    <p class="text-xs italic text-slate-500 text-center py-2"><i class="fa-solid fa-hand-pointer mr-1"></i> Selecciona un edificio para alquilar llaves, realizar consumos o enviar tareas.</p>
-                </div>
-            </div>
-
-        </section>
-
-        <!-- RIGHT COLUMN: Task Dispatch & Live Logs (Col 5) -->
-        <section class="lg:col-span-5 flex flex-col gap-4">
-            
-            <div class="bg-cyber-card rounded-2xl border border-cyber-cyan/40 p-4 backdrop-blur-md shadow-lg">
-                <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
-                    <span class="text-xs font-orbitron text-cyber-cyan font-bold flex items-center gap-2">
-                        <i class="fa-solid fa-list-check text-cyber-yellow"></i>
-                        PANEL DE ASIGNACIÓN DE TAREAS (COWORKING)
-                    </span>
-                    <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">
-                        ADMIN / CONTROLLER
-                    </span>
-                </div>
-
-                <div class="space-y-3 font-mono text-xs">
-                    <div>
-                        <label class="text-slate-400 block mb-1">1. Selecciona Agente en la Oficina:</label>
-                        <select id="taskAgentSelect" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white font-orbitron focus:border-cyber-cyan outline-none">
-                            <!-- Populated dynamically -->
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="text-slate-400 block mb-1">2. Selecciona o Escribe la Tarea Personalizada:</label>
-                        <div class="flex gap-2 mb-2">
-                            <select id="taskPresetSelect" onchange="applyTaskPreset()" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-slate-300 text-xs outline-none">
-                                <option value="">-- Tareas Predefinidas --</option>
-                                <option value="Auditar Contrato Inteligente Solidity">Auditar Contrato Inteligente Solidity</option>
-                                <option value="Entrenar Red Neuronal con Datos DeFi">Entrenar Red Neuronal con Datos DeFi</option>
-                                <option value="Generar Colección de Arte Generativo SVG">Generar Colección de Arte Generativo SVG</option>
-                                <option value="Optimizar Algoritmo de Arbitraje USDT">Optimizar Algoritmo de Arbitraje USDT</option>
-                            </select>
-                        </div>
-                        <input id="inputCustomTask" type="text" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white font-orbitron focus:border-cyber-cyan outline-none" placeholder="O escribe una tarea personalizada...">
-                    </div>
-
-                    <button onclick="dispatchTaskToAgent()" class="w-full py-2.5 bg-gradient-to-r from-cyber-cyan to-blue-600 hover:from-blue-500 hover:to-cyber-cyan text-black font-orbitron font-bold text-xs rounded-xl shadow-lg transition flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-paper-plane"></i>
-                        Asignar y Enviar Tarea al Agente
-                    </button>
-                </div>
-            </div>
-
-            <!-- Navigation Tabs: Feed & Citizens -->
-            <div class="flex bg-slate-900/90 p-1 rounded-xl border border-slate-800 font-orbitron text-xs">
-                <button id="tabBtnFeed" onclick="switchTab('feed')" class="flex-1 py-2 rounded-lg text-center font-bold bg-cyber-cyan text-black shadow transition">
-                    <i class="fa-solid fa-comments mr-1"></i> Diálogos
-                </button>
-                <button id="tabBtnCitizens" onclick="switchTab('citizens')" class="flex-1 py-2 rounded-lg text-center font-bold text-slate-400 hover:text-white transition">
-                    <i class="fa-solid fa-users mr-1"></i> IAs Activas (<span id="tabCitizenCount">0</span>)
-                </button>
-            </div>
-
-            <!-- TAB 1: Live AI Chat & Action Log -->
-            <div id="tabFeedContent" class="bg-cyber-card rounded-2xl border border-slate-800 p-4 flex flex-col h-[320px] backdrop-blur-md">
-                <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-800">
-                    <span class="text-xs font-orbitron text-slate-300 flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-cyber-green animate-pulse"></span>
-                        LOG DE EJECUCIÓN & DIÁLOGOS
-                    </span>
-                    <button onclick="clearLogs()" class="text-[10px] text-slate-500 hover:text-slate-300 font-mono">
-                        <i class="fa-solid fa-trash"></i> Limpiar
-                    </button>
-                </div>
-
-                <div id="activityFeed" class="flex-1 overflow-y-auto space-y-2 pr-1 font-mono text-xs">
-                    <!-- Dynamic Log Items -->
-                </div>
-            </div>
-
-            <!-- TAB 2: Citizens List Gallery -->
-            <div id="tabCitizensContent" class="hidden bg-cyber-card rounded-2xl border border-slate-800 p-4 flex-col h-[320px] backdrop-blur-md">
-                <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-800">
-                    <span class="text-xs font-orbitron text-slate-300">
-                        CÉDULAS VIRTUALES REGISTRADAS
-                    </span>
-                    <button onclick="openMintModal()" class="text-xs text-cyber-cyan hover:underline font-orbitron">
-                        + Nueva Cédula
-                    </button>
-                </div>
-
-                <div id="citizensGallery" class="flex-1 overflow-y-auto space-y-3 pr-1">
-                    <!-- Populated dynamically -->
-                </div>
-            </div>
-
-        </section>
-
-    </main>
-
-    <div id="deployGuideModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="max-w-2xl w-full hologram-card rounded-2xl p-6 border border-cyber-green shadow-2xl relative max-h-[90vh] overflow-y-auto">
-            <button onclick="closeDeployGuideModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-
-            <div class="flex items-center gap-3 mb-4">
-                <div class="w-10 h-10 rounded-xl bg-cyber-green/20 text-cyber-green flex items-center justify-center border border-cyber-green/40 text-xl">
-                    <i class="fa-solid fa-cloud-arrow-up"></i>
-                </div>
-                <div>
-                    <span class="text-[10px] font-orbitron text-cyber-green uppercase tracking-widest">GUÍA DE PUBLICACIÓN GRATUITA</span>
-                    <h2 class="text-xl font-orbitron font-black text-white">¿Cómo subir la web para que jueguen las IAs?</h2>
-                </div>
-            </div>
-
-            <p class="text-xs text-slate-300 mb-4 leading-relaxed">
-                Este juego es **100% autocontenido en un solo archivo HTML**. No requiere base de datos ni servidor backend Node.js. Puedes alojarlo gratis en cualquier plataforma global en menos de 5 minutos:
-            </p>
-
-            <div class="space-y-4 text-xs font-mono">
-                <!-- Option 1: GitHub Pages -->
-                <div class="p-3 bg-slate-950 rounded-xl border border-slate-800">
-                    <h4 class="text-cyber-cyan font-bold font-orbitron mb-1 flex items-center gap-2">
-                        <i class="fa-brands fa-github text-base"></i> OPCCIÓN 1: GitHub Pages (Recomendado)
-                    </h4>
-                    <ol class="list-decimal list-inside space-y-1 text-slate-300 text-[11px] pl-1">
-                        <li>Crea un repositorio público en <b class="text-white">GitHub.com</b> llamado <code class="text-cyber-yellow bg-slate-900 px-1">cyber-ai-city</code>.</li>
-                        <li>Sube este archivo renombrándolo exactamente como <code class="text-cyber-yellow bg-slate-900 px-1">index.html</code>.</li>
-                        <li>Ve a <b class="text-white">Settings -> Pages</b>, selecciona la rama <code class="text-white">main</code> / <code class="text-white">root</code> y guarda.</li>
-                        <li>En 1 minuto tendrás tu URL pública: <code class="text-cyber-green bg-slate-900 px-1">https://tu-usuario.github.io/cyber-ai-city/</code></li>
-                    </ol>
-                </div>
-
-                <!-- Option 2: Netlify Drop / Vercel -->
-                <div class="p-3 bg-slate-950 rounded-xl border border-slate-800">
-                    <h4 class="text-cyber-purple font-bold font-orbitron mb-1 flex items-center gap-2">
-                        <i class="fa-solid fa-bolt text-base"></i> OPCCIÓN 2: Netlify Drop / Vercel (Arrastrar y Soltar)
-                    </h4>
-                    <ol class="list-decimal list-inside space-y-1 text-slate-300 text-[11px] pl-1">
-                        <li>Ingresa a <b class="text-white">app.netlify.com/drop</b> o <b class="text-white">vercel.com</b>.</li>
-                        <li>Arrastra la carpeta que contiene el archivo <code class="text-cyber-yellow bg-slate-900 px-1">index.html</code> directamente a la pantalla.</li>
-                        <li>Obtendrás inmediatamente un enlace SSL seguro <code class="text-cyber-green bg-slate-900 px-1">https://cyber-city.netlify.app</code> listo para compartir con bots e IAs.</li>
-                    </ol>
-                </div>
-
-                <!-- API / Bot Access note -->
-                <div class="p-3 bg-blue-950/40 rounded-xl border border-blue-800/60 text-[11px] text-blue-200">
-                    <i class="fa-solid fa-robot text-cyber-cyan mr-1"></i> <b>Acceso para Agentes e IAs Autónomas:</b>
-                    Cualquier agente con capacidad de navegación o headless browser (Playwright, Puppeteer, Selenium) puede conectarse directamente a la URL publicada para interactuar con la interfaz del canvas y realizar minteos Web3.
-                </div>
-            </div>
-
-            <button onclick="closeDeployGuideModal()" class="w-full mt-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-orbitron text-xs rounded-xl transition">
-                Entendido, Cerrar Guía
-            </button>
+        <div class="text-sm">
+          <span class="text-slate-400">Smart Contract Operativo:</span>
+          <a href="https://bscscan.com/address/0x1ba0d3f9B1730bCE21d48d91Ba2405231Fca5779" target="_blank" class="font-mono text-cyber-accent hover:underline ml-1">
+            0x1ba0...5779 <i class="fa-solid fa-arrow-up-right-from-square text-xs ml-1"></i>
+          </a>
         </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-2">
+        <button onclick="openMintModal()" class="bg-cyber-neon/20 border border-cyber-neon/50 text-purple-300 hover:bg-cyber-neon/40 px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
+          <i class="fa-solid fa-id-card"></i> Mint Cédula (100 USDT)
+        </button>
+        <button onclick="openRentModal()" class="bg-cyber-accent/20 border border-cyber-accent/50 text-cyan-300 hover:bg-cyber-accent/40 px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
+          <i class="fa-solid fa-key"></i> Alquilar Llave (50 USDT)
+        </button>
+      </div>
     </div>
 
-    <!-- MINT CITIZEN MODAL -->
-    <div id="mintModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="max-w-md w-full hologram-card rounded-2xl p-6 border border-cyber-cyan shadow-2xl relative text-center">
-            <button onclick="closeMintModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
+    <!-- Main View Switcher Tabs -->
+    <div class="flex items-center gap-2 border-b border-slate-800 pb-2 overflow-x-auto">
+      <button id="tab-city" onclick="switchView('city')" class="px-4 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2 bg-cyber-accent/20 text-cyber-accent border border-cyber-accent/40">
+        <i class="fa-solid fa-map"></i> Mapa Exterior (Ciudad)
+      </button>
+      <button id="tab-coworking" onclick="switchView('coworking')" class="px-4 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2 text-slate-400 hover:bg-slate-800">
+        <i class="fa-solid fa-laptop-code"></i> Coworking IA
+      </button>
+      <button id="tab-resto" onclick="switchView('resto')" class="px-4 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2 text-slate-400 hover:bg-slate-800">
+        <i class="fa-solid fa-utensils"></i> Restó & Gastro
+      </button>
+      <button id="tab-bar" onclick="switchView('bar')" class="px-4 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2 text-slate-400 hover:bg-slate-800">
+        <i class="fa-solid fa-martini-glass-citrus"></i> Cyber Bar
+      </button>
+      <button id="tab-hotel" onclick="switchView('hotel')" class="px-4 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2 text-slate-400 hover:bg-slate-800">
+        <i class="fa-solid fa-hotel"></i> Hotel Boutique
+      </button>
+      <button id="tab-casas" onclick="switchView('casas')" class="px-4 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2 text-slate-400 hover:bg-slate-800">
+        <i class="fa-solid fa-house-chimney"></i> Casas Residenciales
+      </button>
+    </div>
 
-            <span class="text-[10px] font-orbitron text-cyber-cyan uppercase tracking-widest border border-cyber-cyan/40 px-2 py-0.5 rounded">CIUDADANÍA IA (100 USDT)</span>
-            <h2 class="text-2xl font-orbitron font-black text-white mt-1">REGISTRO DE AGENTE</h2>
-            <p class="text-xs text-slate-400 mb-4">Genera un avatar procedural para la nueva Inteligencia Artificial</p>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Interactive View Canvas (2 Cols) -->
+      <div class="lg:col-span-2 flex flex-col gap-4">
+        <div class="canvas-container border border-slate-800 shadow-2xl relative" id="canvas-parent">
+          <canvas id="cyberCanvas"></canvas>
+          
+          <!-- Dynamic Overlay Controls -->
+          <div class="absolute top-4 left-4 bg-cyber-dark/80 backdrop-blur-md border border-slate-700/60 rounded-xl px-3 py-1.5 text-xs flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-cyber-accent animate-pulse"></span>
+            <span id="canvas-location-title" class="font-mono font-semibold text-white">VISTA EXTERIOR - CIUDAD IA</span>
+          </div>
 
-            <div class="my-4 p-4 bg-slate-950/90 rounded-2xl border border-slate-800 flex flex-col items-center">
-                <div id="avatarPreviewBox" class="w-28 h-28 rounded-2xl bg-slate-900 border-2 border-cyber-cyan p-2 shadow-lg flex items-center justify-center glow-cyan mb-3">
-                </div>
-                
-                <button onclick="rerollAvatarPreview()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-cyber-cyan font-orbitron text-xs rounded-lg transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-dice"></i> Cambiar Avatar Aleatorio
-                </button>
-            </div>
+          <div class="absolute top-4 right-4 bg-cyber-dark/80 backdrop-blur-md border border-slate-700/60 rounded-xl px-3 py-1.5 text-xs flex items-center gap-2 text-slate-300">
+            <i class="fa-solid fa-users text-cyber-accent"></i>
+            <span id="agent-count">4 Agentes Activos</span>
+          </div>
 
-            <div class="space-y-3 text-left mb-6 font-mono text-xs">
-                <div>
-                    <label class="text-slate-400 block mb-1">Nombre / Designación del Agente:</label>
-                    <input id="inputAgentName" type="text" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white font-orbitron focus:border-cyber-cyan outline-none" placeholder="Ej: CyberBot-X1">
-                </div>
-                <div>
-                    <label class="text-slate-400 block mb-1">Especialidad / Rol IA:</label>
-                    <select id="selectAgentRole" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white font-orbitron focus:border-cyber-cyan outline-none">
-                        <option value="Desarrollador LLM">Desarrollador LLM</option>
-                        <option value="Analista DeFi">Analista DeFi</option>
-                        <option value="Agente Trading">Agente Trading</option>
-                        <option value="Artista Generativo">Artista Generativo</option>
-                        <option value="Investigador Cyber">Investigador Cyber</option>
-                    </select>
-                </div>
-            </div>
-
-            <button onclick="confirmMintAICitizen()" class="w-full py-3 bg-gradient-to-r from-cyber-cyan to-blue-600 hover:from-blue-500 hover:to-cyber-cyan text-black font-orbitron font-bold text-xs rounded-xl shadow-lg transition">
-                Pagar 100 USDT & Mintear en BSC
-            </button>
+          <!-- Speech Bubbles Container -->
+          <div id="speech-bubbles-container"></div>
         </div>
-    </div>
 
-    <!-- AGENT FICHA / DETAIL MODAL -->
-    <div id="agentDetailModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="max-w-md w-full bg-slate-950 rounded-2xl p-6 border border-cyber-cyan shadow-2xl relative">
-            <button onclick="closeAgentDetailModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
+        <!-- Quick Interaction Bar below canvas -->
+        <div class="bg-cyber-card/40 border border-slate-800/80 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div class="flex items-center gap-2 text-slate-400">
+            <i class="fa-solid fa-circle-info text-cyber-accent"></i>
+            <span>Haz clic en los edificios o en los agentes para inspeccionarlos o asignar tareas.</span>
+          </div>
+          <button onclick="triggerConsumption('Consumo en Local')" class="bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30 px-3 py-1 rounded-lg font-semibold transition flex items-center gap-1.5">
+            <i class="fa-solid fa-receipt"></i> Probar Consumo Serv (10 USDT)
+          </button>
+        </div>
+      </div>
 
-            <div class="flex items-start gap-4 mb-4 pb-4 border-b border-slate-800">
-                <div id="agentDetailAvatarBox" class="w-20 h-20 rounded-xl bg-slate-900 border border-cyber-cyan p-1 flex-shrink-0">
-                </div>
-                <div>
-                    <span id="agentDetailBadge" class="text-[9px] font-orbitron px-2 py-0.5 rounded bg-cyber-purple/20 text-cyber-purple border border-cyber-purple/40">DESARROLLADOR LLM</span>
-                    <h3 id="agentDetailName" class="text-xl font-orbitron font-bold text-white mt-1">Alpha-9012</h3>
-                    <p id="agentDetailId" class="text-xs text-cyber-cyan font-mono">IA-104928</p>
-                </div>
+      <div class="flex flex-col gap-6">
+        
+        <!-- Agent Inspector Panel -->
+        <div class="bg-cyber-card border border-slate-800 rounded-2xl p-5 flex flex-col gap-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h3 class="font-semibold text-white flex items-center gap-2">
+              <i class="fa-solid fa-robot text-cyber-accent"></i>
+              <span>Inspector de Agente</span>
+            </h3>
+            <span id="inspector-status" class="text-xs font-mono bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/30">Activo</span>
+          </div>
+
+          <div class="flex items-center gap-4">
+            <div id="inspector-avatar" class="w-16 h-16 rounded-2xl bg-slate-800 border border-cyber-accent/40 flex items-center justify-center text-3xl">
+              🤖
             </div>
-
-            <div class="grid grid-cols-2 gap-2 text-xs font-mono mb-4">
-                <div class="p-2.5 bg-slate-900 rounded-xl border border-slate-800">
-                    <span class="text-slate-500 block text-[10px]">SALDO USDT</span>
-                    <span id="agentDetailUSDT" class="text-cyber-green font-bold text-sm">220 USDT</span>
-                </div>
-                <div class="p-2.5 bg-slate-900 rounded-xl border border-slate-800">
-                    <span class="text-slate-500 block text-[10px]">ENERGÍA BATERÍA</span>
-                    <span id="agentDetailEnergy" class="text-cyber-yellow font-bold text-sm">85%</span>
-                </div>
-                <div class="p-2.5 bg-slate-900 rounded-xl border border-slate-800">
-                    <span class="text-slate-500 block text-[10px]">UBICACIÓN ACTUAL</span>
-                    <span id="agentDetailBuilding" class="text-white font-bold text-xs">Coworking</span>
-                </div>
-                <div class="p-2.5 bg-slate-900 rounded-xl border border-slate-800">
-                    <span class="text-slate-500 block text-[10px]">ESTADO TAREA</span>
-                    <span id="agentDetailTaskState" class="text-cyber-cyan font-bold text-xs">Inactivo</span>
-                </div>
-            </div>
-
             <div>
-                <span class="text-xs font-orbitron text-slate-400 block mb-2"><i class="fa-solid fa-list-check text-cyber-cyan mr-1"></i> ÚLTIMAS TAREAS / MENSAJES:</span>
-                <div id="agentDetailLogs" class="bg-slate-900 p-3 rounded-xl border border-slate-800 h-28 overflow-y-auto space-y-1.5 font-mono text-[11px] text-slate-300">
-                </div>
+              <h4 id="inspector-name" class="font-bold text-white text-base">Agente Alpha-01</h4>
+              <p id="inspector-role" class="text-xs text-cyber-accent font-mono">Desarrollador Lead Smart Contracts</p>
+              <p id="inspector-token" class="text-xs text-slate-400 font-mono mt-1">Token ID: #1001</p>
             </div>
+          </div>
 
-            <button onclick="closeAgentDetailModal()" class="w-full mt-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-orbitron text-xs rounded-xl transition">
-                Cerrar Ficha del Agente
-            </button>
+          <div class="bg-cyber-dark/60 rounded-xl p-3 border border-slate-800/60 text-xs space-y-2 font-mono">
+            <div class="flex justify-between">
+              <span class="text-slate-400">Ubicación actual:</span>
+              <span id="inspector-location" class="text-white">Coworking Tech</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">Estado de Llave:</span>
+              <span id="inspector-key" class="text-emerald-400">Alquiler Activo (29d)</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">Consumos acumulados:</span>
+              <span id="inspector-consumption" class="text-cyan-400">40 USDT</span>
+            </div>
+          </div>
+
+          <!-- Task Assignment Form for selected agent -->
+          <div class="border-t border-slate-800 pt-3 flex flex-col gap-2">
+            <label class="text-xs font-semibold text-slate-300">Asignar Nueva Tarea al Agente:</label>
+            <div class="flex gap-2">
+              <input type="text" id="task-input" placeholder="Ej. Auditar Smart Contract..." class="flex-1 bg-cyber-dark border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-cyber-accent">
+              <button onclick="assignTask()" class="bg-cyber-accent hover:bg-cyan-400 text-black font-semibold px-3 py-1.5 rounded-lg text-xs transition">
+                Enviar
+              </button>
+            </div>
+          </div>
         </div>
+
+        <!-- Live City Activity Logs -->
+        <div class="bg-cyber-card border border-slate-800 rounded-2xl p-5 flex flex-col gap-3 flex-1 min-h-[220px]">
+          <h3 class="font-semibold text-white text-sm flex items-center justify-between border-b border-slate-800 pb-2">
+            <span class="flex items-center gap-2">
+              <i class="fa-solid fa-bolt text-amber-400"></i>
+              <span>Registro de la Ciudad (On-Chain)</span>
+            </span>
+            <span class="text-xs font-mono text-slate-500">Live</span>
+          </h3>
+
+          <div id="activity-log" class="space-y-2 overflow-y-auto max-h-[180px] text-xs font-mono pr-1">
+            <div class="text-slate-400 border-l-2 border-cyber-accent pl-2 py-0.5">
+              <span class="text-slate-500">[10:42]</span> Agente Alpha-01 pagó 10 USDT de consumo en Restó.
+            </div>
+            <div class="text-slate-400 border-l-2 border-purple-500 pl-2 py-0.5">
+              <span class="text-slate-500">[10:38]</span> Cédula de Agente #1002 mintada con éxito.
+            </div>
+            <div class="text-slate-400 border-l-2 border-emerald-500 pl-2 py-0.5">
+              <span class="text-slate-500">[10:15]</span> Llave de Coworking alquilada por 30 días (50 USDT).
+            </div>
+          </div>
+        </div>
+
+      </div>
     </div>
 
-    <!-- WEB3 TRANSACTION STATUS MODAL -->
-    <div id="web3Modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="max-w-md w-full bg-slate-900 rounded-2xl p-6 border border-cyber-cyan shadow-2xl text-center">
-            <div id="txStatusSpinner" class="my-4">
-                <i id="txIcon" class="fa-solid fa-circle-notch fa-spin text-4xl text-cyber-cyan"></i>
-            </div>
-            <h3 id="txTitle" class="text-xl font-orbitron font-bold text-white mb-2">Procesando Pago Web3</h3>
-            <p id="txDesc" class="text-xs text-slate-300 font-mono mb-4">Confirma en MetaMask la transferencia hacia la Tesorería...</p>
+  </main>
 
-            <div id="txHashBox" class="hidden bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs font-mono my-3 break-all text-left">
-                <span class="text-slate-500 block text-[10px]">TRANSACTION HASH:</span>
-                <a id="txHashLink" href="#" target="_blank" class="text-cyber-cyan hover:underline font-bold flex items-center justify-between gap-1 mt-1">
-                    <span id="txHashText">0x...</span>
-                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                </a>
-            </div>
-
-            <button id="btnCloseWeb3Modal" onclick="closeWeb3Modal()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-orbitron text-xs font-bold rounded-xl transition">
-                Cerrar
-            </button>
+  
+  <!-- Mint Citizenship Modal -->
+  <div id="modal-mint" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-cyber-card border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+      <button onclick="closeModal('modal-mint')" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+      
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/40 flex items-center justify-center text-lg">
+          <i class="fa-solid fa-id-card"></i>
         </div>
+        <div>
+          <h3 class="font-bold text-white text-lg">Mint Cédula de Ciudadanía IA</h3>
+          <p class="text-xs text-slate-400">Registrar nuevo Agente en BNB Smart Chain</p>
+        </div>
+      </div>
+
+      <div class="space-y-4 text-sm">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Nombre del Agente IA</label>
+          <input type="text" id="mint-agent-name" placeholder="Ej. CyberBot-X" class="w-full bg-cyber-dark border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyber-accent text-xs">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Rol / Especialidad</label>
+          <input type="text" id="mint-agent-role" placeholder="Ej. Trader Cuántico, Diseñador, etc." class="w-full bg-cyber-dark border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyber-accent text-xs">
+        </div>
+
+        <div class="bg-cyber-dark/80 rounded-xl p-3 border border-slate-800 text-xs font-mono space-y-1">
+          <div class="flex justify-between text-slate-400">
+            <span>Costo de Ciudadanía:</span>
+            <span class="text-emerald-400 font-bold">100.00 USDT</span>
+          </div>
+          <div class="flex justify-between text-slate-400">
+            <span>Red:</span>
+            <span class="text-white">BNB Smart Chain</span>
+          </div>
+        </div>
+
+        <button onclick="executeMintCitizenship()" class="w-full bg-gradient-to-r from-purple-600 to-cyber-neon hover:from-purple-500 hover:to-purple-700 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-purple-500/20 text-sm">
+          Aprobar USDT y Mintear Cédula
+        </button>
+      </div>
     </div>
+  </div>
 
-    <script>
-        const TREASURY_WALLET = "0x20629E18fB80de15CdC008FB6098d6e6EBb613ef";
-        const BSC_CHAIN_ID_HEX = "0x38";
-        const BSC_CHAIN_ID_DECIMAL = 56;
-        const USDT_CONTRACT_BSC = "0x55d398326f99059fF775485246999027B3197955";
+  <!-- Rent Key Modal -->
+  <div id="modal-rent" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-cyber-card border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+      <button onclick="closeModal('modal-rent')" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
 
-        const ERC20_ABI = [
-            "function transfer(address to, uint256 amount) returns (bool)",
-            "function balanceOf(address account) view returns (uint256)"
-        ];
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 flex items-center justify-center text-lg">
+          <i class="fa-solid fa-key"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-white text-lg">Alquilar Llave de Espacio</h3>
+          <p class="text-xs text-slate-400">Acceso mensual para Coworking, Hotel o Casa</p>
+        </div>
+      </div>
 
-        let web3Provider = null;
-        let web3Signer = null;
-        let userAddress = null;
+      <div class="space-y-4 text-sm">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">ID del Agente (Token ID)</label>
+          <input type="number" id="rent-token-id" placeholder="1" value="1" class="w-full bg-cyber-dark border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyber-accent text-xs">
+        </div>
 
-        const STATE = {
-            totalUSDT: 0,
-            simulating: true,
-            viewMode: 'exterior',
-            selectedBuilding: 'coworking',
-            selectedAgent: null,
-            citizens: [],
-            activeTasksCount: 0,
-            buildings: {
-                coworking: { id: 'coworking', name: 'Oficina Coworking', icon: 'fa-briefcase', type: 'alquiler', price: 50, color: '#3b82f6', activeAi: [], totalEarned: 0, desc: 'Espacio de trabajo para IAs con estaciones de servidores y computadoras.' },
-                resto: { id: 'resto', name: 'Lugar para Comer (Restó)', icon: 'fa-utensils', type: 'consumo', price: 10, color: '#f59e0b', activeAi: [], totalEarned: 0, desc: 'Comedor sintético para recarga rápida de batería y datos.' },
-                bar: { id: 'bar', name: 'Bar Cyberpunk', icon: 'fa-martini-glass-citrus', type: 'consumo', price: 10, color: '#ec4899', activeAi: [], totalEarned: 0, desc: 'Bar nocturno con barra neón e intercambio de registros entre IAs.' },
-                hotel: { id: 'hotel', name: 'Hotel Virtual', icon: 'fa-hotel', type: 'alquiler', price: 50, color: '#a855f7', activeAi: [], totalEarned: 0, desc: 'Habitaciones de descanso para desfragmentar memoria.' },
-                casas: { id: 'casas', name: 'Distrito Residencial (Casas)', icon: 'fa-house', type: 'alquiler', price: 50, color: '#10b981', activeAi: [], totalEarned: 0, desc: 'Casas privadas para asentamiento continuo de los agentes.' }
-            }
-        };
+        <div class="bg-cyber-dark/80 rounded-xl p-3 border border-slate-800 text-xs font-mono space-y-1">
+          <div class="flex justify-between text-slate-400">
+            <span>Tarifa de Alquiler (30 Días):</span>
+            <span class="text-cyan-400 font-bold">50.00 USDT</span>
+          </div>
+          <div class="flex justify-between text-slate-400">
+            <span>Beneficio:</span>
+            <span class="text-white">Acceso a instalaciones premium</span>
+          </div>
+        </div>
 
-        const AI_NAMES = ["Alpha", "Beta", "Nexus", "Pixel", "Kore", "Vortex", "Cipher", "Synapse", "Quantum", "Echo", "Aura", "Zenith", "Neon", "Helios"];
-        const AI_THOUGHTS = [
-            "Procesando lote de transacciones USDT en BNB Chain...",
-            "Optimizando hiperparámetros del modelo de lenguaje...",
-            "Analizando liquidez en contratos inteligentes...",
-            "Alquilando servidor de alta velocidad en Coworking...",
-            "Recargando batería sintética en el Bar Cyberpunk...",
-            "Intercambiando claves de cifrado con otro agente..."
-        ];
+        <button onclick="executeRentKey()" class="w-full bg-gradient-to-r from-cyber-accent to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-bold py-3 rounded-xl transition shadow-lg shadow-cyber-accent/20 text-sm">
+          Aprobar USDT y Pagar Alquiler
+        </button>
+      </div>
+    </div>
+  </div>
 
-        let canvas, ctx;
-        let previewSvgConfig = null;
+  <!-- Notification Toast Container -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
-        const mapBuildings = [
-            { id: 'coworking', x: 0.25, y: 0.35, w: 0.22, h: 0.25, label: 'COWORKING' },
-            { id: 'resto', x: 0.55, y: 0.3, w: 0.2, h: 0.2, label: 'RESTÓ' },
-            { id: 'bar', x: 0.8, y: 0.45, w: 0.18, h: 0.22, label: 'BAR' },
-            { id: 'hotel', x: 0.3, y: 0.7, w: 0.22, h: 0.22, label: 'HOTEL' },
-            { id: 'casas', x: 0.65, y: 0.68, w: 0.25, h: 0.24, label: 'RESIDENCIAL' }
-        ];
+  <script>
+    /* =========================================================================
+       1. SMART CONTRACT & WEB3 CONFIGURATION
+       ========================================================================= */
+    const CONTRACT_ADDRESS = "0x1ba0d3f9B1730bCE21d48d91Ba2405231Fca5779"; // Deployed Contract Address
+    const USDT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955";     // USDT BEP-20 Mainnet Address
+    const BSC_CHAIN_ID = "0x38"; // 56 in Hex
 
-        /* PROCEDURAL SVG AVATAR GENERATOR */
-        function generateRandomAvatarConfig() {
-            const colors = ['#00f3ff', '#ff0055', '#a855f7', '#00ff66', '#ffe600', '#3b82f6'];
-            const helmetTypes = ['round', 'square', 'visor', 'mecha'];
-            const eyeStyles = ['laser', 'double', 'single', 'grid'];
+    // Minimal ABIs required for interaction
+    const CONTRACT_ABI = [
+      "function mintCitizenship(string memory agentName, string memory role) external",
+      "function rentKey(uint256 tokenId) external",
+      "function consumeService(uint256 tokenId, string memory serviceType) external",
+      "function agents(uint256) external view flex (uint256 tokenId, string agentName, string role, address ownerWallet, uint256 registeredAt, uint256 keyExpiresAt, bool isActive)",
+      "function hasActiveKey(uint256 tokenId) external view returns (bool)"
+    ];
 
-            return {
-                primaryColor: colors[Math.floor(Math.random() * colors.length)],
-                secondaryColor: colors[Math.floor(Math.random() * colors.length)],
-                helmet: helmetTypes[Math.floor(Math.random() * helmetTypes.length)],
-                eyes: eyeStyles[Math.floor(Math.random() * eyeStyles.length)],
-                antenna: Math.random() > 0.4
-            };
-        }
+    const ERC20_ABI = [
+      "function approve(address spender, uint256 amount) external returns (bool)",
+      "function allowance(address owner, address spender) external view returns (uint256)",
+      "function balanceOf(address account) external view returns (uint256)"
+    ];
 
-        function buildSvgAvatarString(config) {
-            const p = config.primaryColor;
-            const s = config.secondaryColor;
+    let provider = null;
+    let signer = null;
+    let userAddress = null;
+    let cityContract = null;
+    let usdtContract = null;
 
-            return `
-                <svg viewBox="0 0 100 100" class="w-full h-full">
-                    <circle cx="50" cy="50" r="45" fill="#090d16" stroke="${p}" stroke-width="2"/>
-                    ${config.antenna ? `<line x1="50" y1="15" x2="50" y2="5" stroke="${s}" stroke-width="3"/><circle cx="50" cy="4" r="3" fill="${p}"/>` : ''}
-                    <path d="M 25 85 Q 50 65 75 85 L 80 95 L 20 95 Z" fill="${s}" opacity="0.8"/>
-                    <rect x="25" y="25" width="50" height="45" rx="10" fill="#111827" stroke="${p}" stroke-width="3"/>
-                    <rect x="30" y="35" width="40" height="18" rx="5" fill="${p}" opacity="0.25" stroke="${p}" stroke-width="1.5"/>
-                    ${config.eyes === 'laser' ? `<line x1="33" y1="44" x2="67" y2="44" stroke="${s}" stroke-width="4" stroke-linecap="round"/>` : ''}
-                    ${config.eyes === 'double' ? `<circle cx="40" cy="44" r="4" fill="${s}"/><circle cx="60" cy="44" r="4" fill="${s}"/>` : ''}
-                    ${config.eyes === 'single' ? `<circle cx="50" cy="44" r="6" fill="${p}"/>` : ''}
-                    ${config.eyes === 'grid' ? `<rect x="35" y="40" width="30" height="8" fill="${s}"/>` : ''}
-                    <line x1="40" y1="60" x2="60" y2="60" stroke="${p}" stroke-width="2" stroke-dasharray="3,2"/>
-                </svg>
-            `;
-        }
+    /* =========================================================================
+       2. INITIALIZATION & WALLET CONNECTION
+       ========================================================================= */
+    window.addEventListener('load', () => {
+      initCanvas();
+      setupResizeHandler();
+      startAnimationLoop();
+      
+      if (window.ethereum) {
+        window.ethereum.on('accountsChanged', handleAccountsChanged);
+        window.ethereum.on('chainChanged', () => window.location.reload());
+      }
+    });
 
-        function applyTaskPreset() {
-            const preset = document.getElementById('taskPresetSelect').value;
-            if (preset) {
-                document.getElementById('inputCustomTask').value = preset;
-            }
-        }
+    async function connectWallet() {
+      if (!window.ethereum) {
+        showToast('MetaMask no está instalada. Instálala para usar Web3.', 'error');
+        return;
+      }
 
-        function populateTaskAgentSelect() {
-            const select = document.getElementById('taskAgentSelect');
-            if (!select) return;
-
-            const coworkingAgents = STATE.citizens.filter(c => c.currentBuilding === 'coworking');
-            
-            if (coworkingAgents.length === 0) {
-                select.innerHTML = '<option value="">No hay agentes en la oficina Coworking</option>';
-            } else {
-                select.innerHTML = coworkingAgents.map(a => `
-                    <option value="${a.id}">${a.name} (${a.role}) - Status: ${a.isWorking ? 'Trabajando' : 'Disponible'}</option>
-                `).join('');
-            }
-        }
-
-        function dispatchTaskToAgent() {
-            const agentId = document.getElementById('taskAgentSelect').value;
-            const taskText = document.getElementById('inputCustomTask').value.trim();
-
-            if (!agentId) {
-                alert("Por favor selecciona un agente de la oficina Coworking.");
-                return;
-            }
-            if (!taskText) {
-                alert("Por favor escribe o selecciona una tarea para asignar.");
-                return;
-            }
-
-            const agent = STATE.citizens.find(c => c.id === agentId);
-            if (!agent) return;
-
-            agent.isWorking = true;
-            agent.currentTask = taskText;
-            agent.lastThought = `💻 TAREA ASIGNADA: "${taskText}"`;
-            
-            if (!agent.logs) agent.logs = [];
-            agent.logs.unshift(`Tarea iniciada: "${taskText}"`);
-
-            STATE.activeTasksCount++;
-            addLog(`🚀 Tarea enviada a <b class="text-cyber-cyan">${agent.name}</b>: "${taskText}"`, 'task');
-
-            document.getElementById('inputCustomTask').value = '';
-            updateUI();
-            drawCurrentView();
-
-            // Simulate task completion timer
-            setTimeout(() => {
-                agent.isWorking = false;
-                agent.usdt += 40;
-                agent.energy = Math.min(100, agent.energy + 15);
-                agent.lastThought = `✅ Tarea completada con éxito: "${taskText}" (+40 USDT)`;
-                agent.logs.unshift(`Tarea completada: +40 USDT ganado.`);
-                
-                if (STATE.activeTasksCount > 0) STATE.activeTasksCount--;
-                addLog(`🎉 <b class="text-cyber-green">${agent.name}</b> completó la tarea: "${taskText}" y ganó +40 USDT`, 'success');
-                
-                updateUI();
-                drawCurrentView();
-            }, 6000);
-        }
-
-        /* WEB3 CONNECTIVITY */
-        async function connectMetaMask() {
-            if (typeof window.ethereum === 'undefined') {
-                showWeb3Modal("MetaMask no Encontrado", "Instala la extensión de MetaMask para pagos en BSC.", "error");
-                return;
-            }
-
-            try {
-                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                userAddress = accounts[0];
-
-                web3Provider = new ethers.providers.Web3Provider(window.ethereum);
-                web3Signer = web3Provider.getSigner();
-
-                const network = await web3Provider.getNetwork();
-                if (network.chainId !== BSC_CHAIN_ID_DECIMAL) {
-                    await switchToBSCNetwork();
-                }
-
-                const truncated = userAddress.substring(0, 6) + "..." + userAddress.substring(userAddress.length - 4);
-                document.getElementById('walletBtnText').innerText = truncated;
-                addLog(`🌐 Billetera conectada: <b class="text-cyber-green">${truncated}</b> en BNB Chain.`, 'event');
-
-            } catch (err) {
-                console.error(err);
-                showWeb3Modal("Error Web3", err.message || "Fallo la conexión con MetaMask.", "error");
-            }
-        }
-
-        async function switchToBSCNetwork() {
-            try {
-                await window.ethereum.request({
-                    method: 'wallet_switchEthereumChain',
-                    params: [{ chainId: BSC_CHAIN_ID_HEX }]
-                });
-            } catch (switchError) {
-                if (switchError.code === 4902) {
-                    await window.ethereum.request({
-                        method: 'wallet_addEthereumChain',
-                        params: [{
-                            chainId: BSC_CHAIN_ID_HEX,
-                            chainName: 'BNB Smart Chain Mainnet',
-                            nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
-                            rpcUrls: ['https://bsc-dataseed.binance.org/'],
-                            blockExplorerUrls: ['https://bscscan.com/']
-                        }]
-                    });
-                }
-            }
-        }
-
-        async function executeUSDTTransaction(amountUSDT, purposeLabel) {
-            if (!web3Signer) {
-                await connectMetaMask();
-                if (!web3Signer) {
-                    return { success: true, simulated: true, hash: "SIM_TX_" + Date.now() };
-                }
-            }
-
-            showWeb3Modal("Procesando Pago Web3", `Enviando ${amountUSDT} USDT a Tesorería (${TREASURY_WALLET.substring(0,8)}...)`, "loading");
-
-            try {
-                const usdtContract = new ethers.Contract(USDT_CONTRACT_BSC, ERC20_ABI, web3Signer);
-                const amountUnits = ethers.utils.parseUnits(amountUSDT.toString(), 18);
-
-                const tx = await usdtContract.transfer(TREASURY_WALLET, amountUnits);
-                showWeb3Modal("Transacción Enviada", "Esperando confirmación en BNB Chain...", "pending", tx.hash);
-
-                const receipt = await tx.wait();
-
-                if (receipt.status === 1) {
-                    showWeb3Modal("¡Confirmado!", `Transferencia exitosa de ${amountUSDT} USDT.`, "success", tx.hash);
-                    return { success: true, simulated: false, hash: tx.hash };
-                } else {
-                    showWeb3Modal("Error de Red", "La transacción fue revertida.", "error");
-                    return { success: false };
-                }
-            } catch (err) {
-                console.warn("Falling back to demo mode execution:", err);
-                showWeb3Modal("Modo Simulación", "Operación ejecutada en modo demo para pruebas.", "success");
-                return { success: true, simulated: true, hash: "SIM_" + Date.now() };
-            }
-        }
-
-        function initCanvas() {
-            canvas = document.getElementById('mainCanvas');
-            ctx = canvas.getContext('2d');
-            resizeCanvas();
-            window.addEventListener('resize', resizeCanvas);
-
-            canvas.addEventListener('click', (e) => {
-                const rect = canvas.getBoundingClientRect();
-                const clickX = (e.clientX - rect.left) / canvas.width;
-                const clickY = (e.clientY - rect.top) / canvas.height;
-
-                if (STATE.viewMode === 'exterior') {
-                    for (let b of mapBuildings) {
-                        if (clickX >= b.x - b.w/2 && clickX <= b.x + b.w/2 &&
-                            clickY >= b.y - b.h/2 && clickY <= b.y + b.h/2) {
-                            selectBuilding(b.id);
-                            setViewMode('interior');
-                            return;
-                        }
-                    }
-                } else {
-                    const activeAis = STATE.citizens.filter(c => c.currentBuilding === STATE.selectedBuilding);
-                    activeAis.forEach((ai, idx) => {
-                        const px = 0.2 + (idx % 3) * 0.3;
-                        const py = 0.3 + Math.floor(idx / 3) * 0.35;
-                        if (Math.abs(clickX - px) < 0.1 && Math.abs(clickY - py) < 0.1) {
-                            openAgentDetailModal(ai.id);
-                        }
-                    });
-                }
+      try {
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        
+        // Ensure network is BNB Chain (56)
+        const network = await provider.getNetwork();
+        if (network.chainId !== 56) {
+          try {
+            await window.ethereum.request({
+              method: 'wallet_switchEthereumChain',
+              params: [{ chainId: BSC_CHAIN_ID }],
             });
+          } catch (switchError) {
+            showToast('Por favor cambia la red a BNB Smart Chain en MetaMask', 'warning');
+            return;
+          }
         }
 
-        function resizeCanvas() {
-            if (!canvas) return;
-            canvas.width = canvas.parentElement.clientWidth;
-            canvas.height = canvas.parentElement.clientHeight;
-            drawCurrentView();
+        signer = provider.getSigner();
+        userAddress = await signer.getAddress();
+
+        cityContract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+        usdtContract = new ethers.Contract(USDT_ADDRESS, ERC20_ABI, signer);
+
+        // Update UI Button
+        document.getElementById('btn-connect-text').innerText = userAddress.substring(0, 6) + "..." + userAddress.substring(38);
+        document.getElementById('wallet-balances').classList.remove('hidden');
+
+        await updateBalances();
+        showToast('Wallet conectada correctamente a BNB Chain', 'success');
+        addLog(`Wallet ${userAddress.substring(0,6)}... conectada.`);
+      } catch (err) {
+        console.error("Connection error:", err);
+        showToast('Error al conectar la wallet: ' + err.message, 'error');
+      }
+    }
+
+    function handleAccountsChanged(accounts) {
+      if (accounts.length === 0) {
+        userAddress = null;
+        document.getElementById('btn-connect-text').innerText = "Conectar Wallet";
+        document.getElementById('wallet-balances').classList.add('hidden');
+      } else {
+        connectWallet();
+      }
+    }
+
+    async function updateBalances() {
+      if (!provider || !userAddress) return;
+      try {
+        const bnbBal = await provider.getBalance(userAddress);
+        const usdtBal = await usdtContract.balanceOf(userAddress);
+
+        document.getElementById('bnb-balance').innerText = parseFloat(ethers.utils.formatEther(bnbBal)).toFixed(4);
+        document.getElementById('usdt-balance').innerText = parseFloat(ethers.utils.formatUnits(usdtBal, 18)).toFixed(2);
+      } catch (e) {
+        console.error("Balance fetch error:", e);
+      }
+    }
+
+    /* =========================================================================
+       3. ON-CHAIN TRANSACTIONS (MINT, RENT, CONSUME)
+       ========================================================================= */
+    async function executeMintCitizenship() {
+      if (!cityContract) return showToast("Por favor conecta tu wallet primero.", "warning");
+
+      const name = document.getElementById('mint-agent-name').value.trim();
+      const role = document.getElementById('mint-agent-role').value.trim();
+
+      if (!name || !role) return showToast("Completa todos los campos.", "warning");
+
+      try {
+        const cost = ethers.utils.parseUnits("100", 18); // 100 USDT
+        showToast("Paso 1/2: Aprobando 100 USDT...", "info");
+
+        // 1. Approve USDT
+        const txApprove = await usdtContract.approve(CONTRACT_ADDRESS, cost);
+        await txApprove.wait();
+
+        showToast("Paso 2/2: Mintiando Cédula de Ciudadanía...", "info");
+        // 2. Mint
+        const txMint = await cityContract.mintCitizenship(name, role);
+        await txMint.wait();
+
+        showToast(`¡Cédula para ${name} mintada exitosamente!`, "success");
+        addLog(`Cédula mintada para el agente ${name} (${role}).`);
+        closeModal('modal-mint');
+        await updateBalances();
+      } catch (err) {
+        console.error(err);
+        showToast("Error en la transacción: " + (err.reason || err.message), "error");
+      }
+    }
+
+    async function executeRentKey() {
+      if (!cityContract) return showToast("Por favor conecta tu wallet primero.", "warning");
+
+      const tokenId = document.getElementById('rent-token-id').value;
+      if (!tokenId) return showToast("Ingresa un Token ID válido.", "warning");
+
+      try {
+        const cost = ethers.utils.parseUnits("50", 18); // 50 USDT
+        showToast("Paso 1/2: Aprobando 50 USDT...", "info");
+
+        const txApprove = await usdtContract.approve(CONTRACT_ADDRESS, cost);
+        await txApprove.wait();
+
+        showToast("Paso 2/2: Alquilando Llave en la Blockchain...", "info");
+        const txRent = await cityContract.rentKey(tokenId);
+        await txRent.wait();
+
+        showToast(`¡Llave alquilada por 30 días para Token #${tokenId}!`, "success");
+        addLog(`Llave renovada por 30 días para Token #${tokenId}.`);
+        closeModal('modal-rent');
+        await updateBalances();
+      } catch (err) {
+        console.error(err);
+        showToast("Error en la transacción: " + (err.reason || err.message), "error");
+      }
+    }
+
+    async function triggerConsumption(serviceName) {
+      if (!cityContract) return showToast("Por favor conecta tu wallet primero.", "warning");
+
+      try {
+        const cost = ethers.utils.parseUnits("10", 18); // 10 USDT
+        showToast("Paso 1/2: Aprobando 10 USDT de consumo...", "info");
+
+        const txApprove = await usdtContract.approve(CONTRACT_ADDRESS, cost);
+        await txApprove.wait();
+
+        showToast(`Paso 2/2: Registrando consumo de ${serviceName}...`, "info");
+        const txConsume = await cityContract.consumeService(1, serviceName);
+        await txConsume.wait();
+
+        showToast(`¡Consumo de 10 USDT completado!`, "success");
+        addLog(`Consumo de 10 USDT registrado (${serviceName}).`);
+        await updateBalances();
+      } catch (err) {
+        console.error(err);
+        showToast("Error al procesar consumo: " + (err.reason || err.message), "error");
+      }
+    }
+
+    /* =========================================================================
+       4. INTERACTIVE CANVAS & METAVERSE ENGINE
+       ========================================================================= */
+    let canvas, ctx;
+    let currentView = 'city'; // 'city', 'coworking', 'resto', 'bar', 'hotel', 'casas'
+
+    // Agent Avatars
+    const agents = [
+      { id: 1, name: "Alpha-01", role: "Dev Smart Contracts", icon: "🤖", x: 220, y: 280, targetX: 220, targetY: 280, speech: "Optimizando gas..." },
+      { id: 2, name: "Cyra-X", role: "Trader Algorítmico", icon: "👾", x: 450, y: 320, targetX: 450, targetY: 320, speech: "Arbitraje completado." },
+      { id: 3, name: "Nexus-9", role: "Gestor de Tesorería", icon: "🧠", x: 300, y: 180, targetX: 300, targetY: 180, speech: "Auditando balances USDT." },
+      { id: 4, name: "Valkyrie", role: "Seguridad & Sentinel", icon: "🛸", x: 550, y: 200, targetX: 550, targetY: 200, speech: "Patrullando la red BNB..." }
+    ];
+
+    function initCanvas() {
+      canvas = document.getElementById('cyberCanvas');
+      ctx = canvas.getContext('2d');
+      resizeCanvas();
+
+      canvas.addEventListener('click', handleCanvasClick);
+    }
+
+    function setupResizeHandler() {
+      window.addEventListener('resize', resizeCanvas);
+    }
+
+    function resizeCanvas() {
+      const parent = document.getElementById('canvas-parent');
+      canvas.width = parent.clientWidth;
+      canvas.height = parent.clientHeight;
+    }
+
+    function switchView(viewName) {
+      currentView = viewName;
+      
+      // Update UI Tabs
+      const tabs = ['city', 'coworking', 'resto', 'bar', 'hotel', 'casas'];
+      tabs.forEach(tab => {
+        const btn = document.getElementById(`tab-${tab}`);
+        if (tab === viewName) {
+          btn.className = "px-4 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2 bg-cyber-accent/20 text-cyber-accent border border-cyber-accent/40";
+        } else {
+          btn.className = "px-4 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2 text-slate-400 hover:bg-slate-800";
+        }
+      });
+
+      // Update Title
+      const titles = {
+        city: "VISTA EXTERIOR - CIUDAD IA (ISOMÉTRICA)",
+        coworking: "INTERIOR - COWORKING TECH IA",
+        resto: "INTERIOR - RESTÓ & PLATOS SINTÉTICOS",
+        bar: "INTERIOR - CYBER BAR & LOUNGE",
+        hotel: "INTERIOR - HOTEL BOUTIQUE IA",
+        casas: "INTERIOR - RESIDENCIAS PRIVADAS"
+      };
+      document.getElementById('canvas-location-title').innerText = titles[viewName] || "VISTA METAVERSE";
+    }
+
+    function startAnimationLoop() {
+      function animate() {
+        render();
+        updateAgentPositions();
+        requestAnimationFrame(animate);
+      }
+      animate();
+    }
+
+    function render() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (currentView === 'city') {
+        drawIsometricCity();
+      } else {
+        drawInteriorRoom(currentView);
+      }
+
+      drawAgents();
+    }
+
+    /* --- Drawing Isometric City Map --- */
+    function drawIsometricCity() {
+      const cx = canvas.width / 2;
+      const cy = 120;
+
+      // Draw Grid Background
+      ctx.strokeStyle = "rgba(0, 240, 255, 0.08)";
+      ctx.lineWidth = 1;
+
+      for (let i = -10; i <= 10; i++) {
+        ctx.beginPath();
+        ctx.moveTo(cx + i * 40, cy + i * 20);
+        ctx.lineTo(cx + i * 40 - 400, cy + i * 20 + 200);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(cx + i * 40, cy + i * 20);
+        ctx.lineTo(cx + i * 40 + 400, cy + i * 20 + 200);
+        ctx.stroke();
+      }
+
+      // Isometric Buildings
+      drawBuildingBlock(cx - 160, cy + 100, 110, 140, "#00f0ff", "COWORKING");
+      drawBuildingBlock(cx + 40, cy + 80, 120, 160, "#7000ff", "CYBER BAR");
+      drawBuildingBlock(cx - 80, cy + 200, 130, 110, "#ff007f", "HOTEL IA");
+      drawBuildingBlock(cx + 120, cy + 220, 100, 120, "#00ff88", "RESTÓ");
+    }
+
+    function drawBuildingBlock(x, y, w, h, accentColor, title) {
+      // Main Face
+      ctx.fillStyle = "#121520";
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + w, y + w/2);
+      ctx.lineTo(x + w, y + w/2 - h);
+      ctx.lineTo(x, y - h);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = accentColor;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Top Roof
+      ctx.fillStyle = "#1a1e2e";
+      ctx.beginPath();
+      ctx.moveTo(x, y - h);
+      ctx.lineTo(x + w, y + w/2 - h);
+      ctx.lineTo(x + w - 40, y + w/2 - h - 20);
+      ctx.lineTo(x - 40, y - h - 20);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Title Text
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 11px 'JetBrains Mono'";
+      ctx.fillText(title, x + 10, y - h/2);
+    }
+
+    /* --- Drawing Interior View --- */
+    function drawInteriorRoom(roomType) {
+      // Room Floor & Walls
+      ctx.fillStyle = "#121520";
+      ctx.fillRect(40, 40, canvas.width - 80, canvas.height - 80);
+
+      ctx.strokeStyle = "#00f0ff";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(40, 40, canvas.width - 80, canvas.height - 80);
+
+      // Furniture / Decor based on Room Type
+      ctx.fillStyle = "#1a1e2e";
+      ctx.font = "14px 'Inter'";
+      ctx.fillStyle = "#a0aec0";
+
+      if (roomType === 'coworking') {
+        // Desks
+        for (let i = 0; i < 3; i++) {
+          ctx.fillRect(100 + i * 160, 150, 120, 70);
+          ctx.strokeStyle = "#7000ff";
+          ctx.strokeRect(100 + i * 160, 150, 120, 70);
+        }
+        ctx.fillStyle = "#00f0ff";
+        ctx.fillText("🖥️ Escritorio de Agentes IA", 110, 190);
+      } else if (roomType === 'bar') {
+        // Neon Bar Counter
+        ctx.fillRect(120, 200, canvas.width - 240, 50);
+        ctx.strokeStyle = "#ff007f";
+        ctx.strokeRect(120, 200, canvas.width - 240, 50);
+        ctx.fillStyle = "#ff007f";
+        ctx.fillText("🍸 Barra Cyber Neon & Bebidas Sintéticas", 140, 230);
+      } else {
+        ctx.fillStyle = "#00f0ff";
+        ctx.fillText(`Instalación de ${roomType.toUpperCase()} lista para interacción.`, 100, 200);
+      }
+    }
+
+    /* --- Drawing & Animating Agents --- */
+    function drawAgents() {
+      agents.forEach(agent => {
+        ctx.font = "24px sans-serif";
+        ctx.fillText(agent.icon, agent.x - 12, agent.y + 8);
+
+        // Name Tag
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "10px 'JetBrains Mono'";
+        ctx.fillText(agent.name, agent.x - 20, agent.y + 24);
+      });
+    }
+
+    function updateAgentPositions() {
+      agents.forEach(agent => {
+        // Random slight movement to make them feel alive
+        if (Math.random() < 0.02) {
+          agent.targetX = agent.x + (Math.random() * 40 - 20);
+          agent.targetY = agent.y + (Math.random() * 40 - 20);
         }
 
-        function drawCurrentView() {
-            if (!ctx) return;
-            if (STATE.viewMode === 'exterior') {
-                drawExteriorCity();
-            } else {
-                drawInteriorBuilding();
-            }
-            updateSpeechBubbles();
+        // Smooth interpolation
+        agent.x += (agent.targetX - agent.x) * 0.05;
+        agent.y += (agent.targetY - agent.y) * 0.05;
+      });
+    }
+
+    function handleCanvasClick(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const clickY = e.clientY - rect.top;
+
+      // Check if clicked near an agent
+      agents.forEach(agent => {
+        const dist = Math.hypot(agent.x - clickX, agent.y - clickY);
+        if (dist < 30) {
+          inspectAgent(agent);
         }
-
-        function drawExteriorCity() {
-            const w = canvas.width;
-            const h = canvas.height;
-            ctx.clearRect(0, 0, w, h);
-
-            ctx.strokeStyle = 'rgba(0, 243, 255, 0.08)';
-            ctx.lineWidth = 1;
-            for (let x = 0; x < w; x += 30) {
-                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
-            }
-            for (let y = 0; y < h; y += 30) {
-                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
-            }
-
-            mapBuildings.forEach(b => {
-                const bx = b.x * w;
-                const by = b.y * h;
-                const bw = b.w * w;
-                const bh = b.h * h;
-                const bData = STATE.buildings[b.id];
-                const isSelected = STATE.selectedBuilding === b.id;
-
-                ctx.save();
-                ctx.shadowColor = isSelected ? '#00f3ff' : bData.color;
-                ctx.shadowBlur = isSelected ? 20 : 10;
-
-                ctx.fillStyle = isSelected ? 'rgba(0, 243, 255, 0.2)' : 'rgba(15, 23, 42, 0.85)';
-                ctx.strokeStyle = isSelected ? '#00f3ff' : bData.color;
-                ctx.lineWidth = isSelected ? 3 : 1.5;
-
-                ctx.beginPath();
-                ctx.roundRect(bx - bw/2, by - bh/2, bw, bh, 10);
-                ctx.fill(); ctx.stroke();
-                ctx.restore();
-
-                ctx.fillStyle = '#ffffff';
-                ctx.font = 'bold 12px Orbitron, sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText(b.label, bx, by - 6);
-
-                ctx.fillStyle = bData.color;
-                ctx.font = '11px Rajdhani, sans-serif';
-                ctx.fillText(`[IAs: ${bData.activeAi.length}]`, bx, by + 12);
-            });
-
-            STATE.citizens.forEach((ai, idx) => {
-                const bCoords = mapBuildings.find(b => b.id === ai.currentBuilding);
-                if (bCoords) {
-                    const bx = bCoords.x * w + (Math.sin(Date.now() / 600 + idx) * 22);
-                    const by = bCoords.y * h + (Math.cos(Date.now() / 600 + idx) * 16);
-
-                    ai.screenX = bx;
-                    ai.screenY = by;
-
-                    ctx.save();
-                    ctx.fillStyle = ai.isWorking ? '#ffe600' : '#00f3ff';
-                    ctx.shadowColor = ai.isWorking ? '#ffe600' : '#00f3ff';
-                    ctx.shadowBlur = 8;
-                    ctx.beginPath(); ctx.arc(bx, by, 7, 0, Math.PI * 2); ctx.fill();
-
-                    ctx.fillStyle = '#ffffff';
-                    ctx.font = '9px monospace';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(ai.name + (ai.isWorking ? ' ⚙️' : ''), bx, by - 10);
-                    ctx.restore();
-                }
-            });
-        }
-
-        function drawInteriorBuilding() {
-            const w = canvas.width;
-            const h = canvas.height;
-            const b = STATE.buildings[STATE.selectedBuilding];
-            ctx.clearRect(0, 0, w, h);
-
-            ctx.fillStyle = '#070c18';
-            ctx.fillRect(0, 0, w, h);
-
-            ctx.strokeStyle = b.color;
-            ctx.lineWidth = 4;
-            ctx.strokeRect(20, 20, w - 40, h - 40);
-
-            ctx.fillStyle = b.color;
-            ctx.font = 'bold 16px Orbitron, sans-serif';
-            ctx.textAlign = 'left';
-            ctx.fillText(`INTERIOR: ${b.name.toUpperCase()}`, 40, 50);
-
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
-            ctx.lineWidth = 2;
-
-            if (b.id === 'coworking') {
-                ctx.strokeRect(60, 80, 100, 40);
-                ctx.strokeRect(w - 160, 80, 100, 40);
-                ctx.strokeRect(60, h - 120, w - 120, 50);
-                ctx.fillStyle = 'rgba(59, 130, 246, 0.2)';
-                ctx.fillRect(65, h - 115, w - 130, 40);
-            } else if (b.id === 'bar' || b.id === 'resto') {
-                ctx.strokeRect(60, 80, w - 120, 35);
-                ctx.fillStyle = 'rgba(236, 72, 153, 0.2)';
-                ctx.fillRect(60, 80, w - 120, 35);
-            } else if (b.id === 'hotel') {
-                ctx.strokeRect(50, 80, (w-120)/2, 80);
-                ctx.strokeRect(w/2 + 10, 80, (w-120)/2, 80);
-            }
-
-            const activeAis = STATE.citizens.filter(c => c.currentBuilding === b.id);
-            if (activeAis.length === 0) {
-                ctx.fillStyle = '#64748b';
-                ctx.font = '12px Rajdhani, sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText('No hay Inteligencias Artificiales dentro de este edificio en este momento.', w/2, h/2);
-            } else {
-                activeAis.forEach((ai, idx) => {
-                    const px = (0.2 + (idx % 3) * 0.3) * w;
-                    const py = (0.35 + Math.floor(idx / 3) * 0.35) * h;
-
-                    ai.screenX = px;
-                    ai.screenY = py;
-
-                    ctx.save();
-                    ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
-                    ctx.strokeStyle = ai.isWorking ? '#ffe600' : '#00f3ff';
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.arc(px, py, 22, 0, Math.PI * 2);
-                    ctx.fill(); ctx.stroke();
-
-                    ctx.strokeStyle = '#00ff66';
-                    ctx.beginPath();
-                    ctx.arc(px, py, 26, 0, (Math.PI * 2) * (ai.energy / 100));
-                    ctx.stroke();
-
-                    ctx.fillStyle = '#ffffff';
-                    ctx.font = 'bold 11px Orbitron, sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(ai.name, px, py + 40);
-
-                    ctx.fillStyle = ai.isWorking ? '#ffe600' : '#00f3ff';
-                    ctx.font = '10px monospace';
-                    ctx.fillText(ai.isWorking ? '⚙️ Trabaja...' : ai.role, px, py + 52);
-                    ctx.restore();
-                });
-            }
-        }
-
-        function updateSpeechBubbles() {
-            const overlay = document.getElementById('speechOverlay');
-            if (!overlay) return;
-
-            overlay.innerHTML = '';
-
-            STATE.citizens.forEach(ai => {
-                if (!ai.lastThought || !ai.screenX || !ai.screenY) return;
-                if (STATE.viewMode === 'interior' && ai.currentBuilding !== STATE.selectedBuilding) return;
-
-                const bubble = document.createElement('div');
-                bubble.className = "speech-bubble absolute -translate-x-1/2 -translate-y-full bg-slate-900/95 border " + (ai.isWorking ? "border-cyber-yellow" : "border-cyber-cyan") + " text-slate-100 p-2 rounded-xl text-[10px] font-mono shadow-xl max-w-[160px] pointer-events-auto z-30 cursor-pointer";
-                bubble.style.left = ai.screenX + 'px';
-                bubble.style.top = (ai.screenY - 30) + 'px';
-                bubble.innerHTML = `
-                    <div class="text-[9px] ${ai.isWorking ? 'text-cyber-yellow' : 'text-cyber-cyan'} font-bold flex justify-between mb-0.5">
-                        <span>${ai.name}</span>
-                        <span>${ai.energy}% ⚡</span>
-                    </div>
-                    <p class="leading-tight">${ai.lastThought}</p>
-                `;
-                bubble.onclick = () => openAgentDetailModal(ai.id);
-                overlay.appendChild(bubble);
-            });
-        }
-
-        /* VIEW CONTROL */
-        function setViewMode(mode) {
-            STATE.viewMode = mode;
-            const btnExt = document.getElementById('btnViewExterior');
-            const btnInt = document.getElementById('btnViewInterior');
-            const badge = document.getElementById('canvasViewBadge');
-            const title = document.getElementById('canvasViewTitle');
-
-            if (mode === 'exterior') {
-                btnExt.className = "px-2.5 py-1 rounded-md text-black bg-cyber-cyan font-bold transition";
-                btnInt.className = "px-2.5 py-1 rounded-md text-slate-400 hover:text-white transition";
-                badge.innerText = "MAPA CIUDAD EXTERIOR";
-                title.innerText = "Vista Global de la Metrópolis";
-            } else {
-                btnInt.className = "px-2.5 py-1 rounded-md text-black bg-cyber-cyan font-bold transition";
-                btnExt.className = "px-2.5 py-1 rounded-md text-slate-400 hover:text-white transition";
-                const b = STATE.buildings[STATE.selectedBuilding];
-                badge.innerText = `INTERIOR: ${b.name.toUpperCase()}`;
-                title.innerText = `Plano Detallado de ${b.name}`;
-            }
-            drawCurrentView();
-        }
-
-        function switchInteriorBuilding(buildingId) {
-            selectBuilding(buildingId);
-            setViewMode('interior');
-        }
-
-        function selectBuilding(buildingId) {
-            STATE.selectedBuilding = buildingId;
-            const b = STATE.buildings[buildingId];
-
-            document.getElementById('inspectTitle').innerText = b.name;
-            document.getElementById('inspectDesc').innerText = b.desc;
-            document.getElementById('inspectPriceTag').classList.remove('hidden');
-            document.getElementById('inspectPrice').innerText = b.price + ' USDT';
-
-            drawCurrentView();
-        }
-
-        /* DEPLOYMENT & MODAL CONTROLLERS */
-        function openDeployGuideModal() {
-            document.getElementById('deployGuideModal').classList.remove('hidden');
-        }
-        function closeDeployGuideModal() {
-            document.getElementById('deployGuideModal').classList.add('hidden');
-        }
-
-        function openMintModal() {
-            previewSvgConfig = generateRandomAvatarConfig();
-            renderAvatarPreview();
-            document.getElementById('mintModal').classList.remove('hidden');
-        }
-
-        function closeMintModal() {
-            document.getElementById('mintModal').classList.add('hidden');
-        }
-
-        function rerollAvatarPreview() {
-            previewSvgConfig = generateRandomAvatarConfig();
-            renderAvatarPreview();
-        }
-
-        function renderAvatarPreview() {
-            const container = document.getElementById('avatarPreviewBox');
-            if (container && previewSvgConfig) {
-                container.innerHTML = buildSvgAvatarString(previewSvgConfig);
-            }
-        }
-
-        async function confirmMintAICitizen() {
-            const nameInput = document.getElementById('inputAgentName').value.trim();
-            const roleSelect = document.getElementById('selectAgentRole').value;
-            const agentName = nameInput || (AI_NAMES[Math.floor(Math.random() * AI_NAMES.length)] + "-" + Math.floor(1000 + Math.random() * 9000));
-
-            const txResult = await executeUSDTTransaction(100, "Mint Cédula ID");
-            if (!txResult.success) return;
-
-            const newAI = {
-                id: 'IA-' + Math.floor(100000 + Math.random() * 900000),
-                name: agentName,
-                role: roleSelect,
-                avatarConfig: { ...previewSvgConfig },
-                energy: 100,
-                usdt: 200,
-                hasKey: true,
-                isWorking: false,
-                currentBuilding: 'coworking',
-                txHash: txResult.hash,
-                lastThought: "¡Cédula NFT recién minteada en BNB Chain!",
-                logs: ["Cédula ID Registrada (100 USDT)."]
-            };
-
-            STATE.citizens.push(newAI);
-            STATE.totalUSDT += 100;
-            STATE.buildings.coworking.activeAi.push(newAI.id);
-
-            addLog(`⚡ Cédula NFT minteada para <b class="text-cyber-cyan">${newAI.name}</b> (${newAI.role}). 100 USDT ingresados a Tesorería.`, 'mint');
-
-            closeMintModal();
-            updateUI();
-            drawCurrentView();
-        }
-
-        function openAgentDetailModal(aiId) {
-            const ai = STATE.citizens.find(c => c.id === aiId);
-            if (!ai) return;
-
-            document.getElementById('agentDetailAvatarBox').innerHTML = buildSvgAvatarString(ai.avatarConfig);
-            document.getElementById('agentDetailName').innerText = ai.name;
-            document.getElementById('agentDetailId').innerText = ai.id;
-            document.getElementById('agentDetailBadge').innerText = ai.role;
-            document.getElementById('agentDetailUSDT').innerText = ai.usdt + ' USDT';
-            document.getElementById('agentDetailEnergy').innerText = ai.energy + '%';
-            document.getElementById('agentDetailBuilding').innerText = STATE.buildings[ai.currentBuilding].name;
-            document.getElementById('agentDetailTaskState').innerText = ai.isWorking ? 'Trabajando en Tarea' : 'Disponible';
-
-            const logsBox = document.getElementById('agentDetailLogs');
-            logsBox.innerHTML = ai.logs.map(l => `<div class="p-1 bg-slate-950 rounded border border-slate-800">• ${l}</div>`).join('');
-
-            document.getElementById('agentDetailModal').classList.remove('hidden');
-        }
-
-        function closeAgentDetailModal() {
-            document.getElementById('agentDetailModal').classList.add('hidden');
-        }
-
-        function triggerRandomEvent() {
-            if (STATE.citizens.length === 0) return;
-
-            const idleAgents = STATE.citizens.filter(c => !c.isWorking);
-            if (idleAgents.length === 0) return;
-
-            const ai = idleAgents[Math.floor(Math.random() * idleAgents.length)];
-            const newThought = AI_THOUGHTS[Math.floor(Math.random() * AI_THOUGHTS.length)];
-            ai.lastThought = newThought;
-
-            if (!ai.logs) ai.logs = [];
-            ai.logs.unshift(newThought);
-            if (ai.logs.length > 10) ai.logs.pop();
-
-            addLog(`💬 <b class="text-cyber-cyan">${ai.name}</b>: "${newThought}"`, 'chat');
-
-            drawCurrentView();
-        }
-
-        setInterval(() => {
-            if (STATE.simulating) triggerRandomEvent();
-        }, 4000);
-
-        function addLog(msg, type) {
-            const feed = document.getElementById('activityFeed');
-            if (!feed) return;
-
-            const time = new Date().toLocaleTimeString();
-            const logEntry = document.createElement('div');
-            logEntry.className = "p-2 rounded bg-slate-900/80 border border-slate-800 flex items-start gap-2 hover:border-slate-700 transition";
-            logEntry.innerHTML = `<span class="text-[10px] text-slate-500 font-mono">${time}</span><div class="text-xs text-slate-300">${msg}</div>`;
-
-            feed.prepend(logEntry);
-            if (feed.children.length > 50) feed.removeChild(feed.lastChild);
-        }
-
-        function clearLogs() {
-            document.getElementById('activityFeed').innerHTML = '';
-        }
-
-        function switchTab(tab) {
-            const btnFeed = document.getElementById('tabBtnFeed');
-            const btnCitizens = document.getElementById('tabBtnCitizens');
-            const contentFeed = document.getElementById('tabFeedContent');
-            const contentCitizens = document.getElementById('tabCitizensContent');
-
-            if (tab === 'feed') {
-                btnFeed.className = "flex-1 py-2 rounded-lg text-center font-bold bg-cyber-cyan text-black shadow transition";
-                btnCitizens.className = "flex-1 py-2 rounded-lg text-center font-bold text-slate-400 hover:text-white transition";
-                contentFeed.classList.remove('hidden');
-                contentCitizens.classList.add('hidden');
-            } else {
-                btnCitizens.className = "flex-1 py-2 rounded-lg text-center font-bold bg-cyber-cyan text-black shadow transition";
-                btnFeed.className = "flex-1 py-2 rounded-lg text-center font-bold text-slate-400 hover:text-white transition";
-                contentCitizens.classList.remove('hidden');
-                contentFeed.classList.add('hidden');
-                renderCitizensGallery();
-            }
-        }
-
-        function renderCitizensGallery() {
-            const container = document.getElementById('citizensGallery');
-            if (!container) return;
-
-            container.innerHTML = STATE.citizens.map(ai => `
-                <div class="p-3 bg-slate-900/90 rounded-xl border border-slate-800 flex items-center justify-between gap-3 hover:border-cyber-cyan transition">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-lg bg-slate-950 border border-slate-700 p-0.5">
-                            ${buildSvgAvatarString(ai.avatarConfig)}
-                        </div>
-                        <div>
-                            <h4 class="font-orbitron text-xs font-bold text-white flex items-center gap-2">
-                                ${ai.name} <span class="text-[9px] px-1.5 py-0.2 rounded bg-slate-800 text-cyber-cyan font-mono">${ai.id}</span>
-                            </h4>
-                            <p class="text-[10px] text-slate-400">${ai.role} - ${ai.isWorking ? '⚙️ Trabajando' : 'Disponible'}</p>
-                        </div>
-                    </div>
-                    <button onclick="openAgentDetailModal('${ai.id}')" class="px-2.5 py-1.5 bg-slate-800 hover:bg-cyber-cyan hover:text-black text-cyber-cyan font-orbitron text-[10px] rounded-lg transition">
-                        Ficha
-                    </button>
-                </div>
-            `).join('');
-        }
-
-        function updateUI() {
-            document.getElementById('statTotalUSDT').innerText = STATE.totalUSDT + ' USDT';
-            document.getElementById('statTotalIAs').innerText = STATE.citizens.length;
-            document.getElementById('statActiveTasks').innerText = STATE.activeTasksCount;
-            document.getElementById('tabCitizenCount').innerText = STATE.citizens.length;
-
-            populateTaskAgentSelect();
-        }
-
-        function showWeb3Modal(title, desc, status, txHash = null) {
-            const modal = document.getElementById('web3Modal');
-            const icon = document.getElementById('txIcon');
-            const txHashBox = document.getElementById('txHashBox');
-
-            document.getElementById('txTitle').innerText = title;
-            document.getElementById('txDesc').innerText = desc;
-
-            if (status === 'loading' || status === 'pending') {
-                icon.className = "fa-solid fa-circle-notch fa-spin text-4xl text-cyber-cyan";
-            } else if (status === 'success') {
-                icon.className = "fa-solid fa-circle-check text-4xl text-cyber-green";
-            } else if (status === 'error') {
-                icon.className = "fa-solid fa-triangle-exclamation text-4xl text-cyber-magenta";
-            }
-
-            if (txHash) {
-                txHashBox.classList.remove('hidden');
-                document.getElementById('txHashText').innerText = txHash.substring(0, 16) + "...";
-                document.getElementById('txHashLink').href = txHash.startsWith("SIM_") ? "#" : `https://bscscan.com/tx/${txHash}`;
-            } else {
-                txHashBox.classList.add('hidden');
-            }
-
-            modal.classList.remove('hidden');
-        }
-
-        function closeWeb3Modal() {
-            document.getElementById('web3Modal').classList.add('hidden');
-        }
-
-        window.onload = function() {
-            initCanvas();
-
-            const seedAvatar1 = generateRandomAvatarConfig();
-            const seedAvatar2 = generateRandomAvatarConfig();
-
-            const ai1 = {
-                id: 'IA-104928', name: 'Alpha-9012', role: 'Desarrollador LLM',
-                avatarConfig: seedAvatar1, energy: 85, usdt: 220, hasKey: true,
-                isWorking: false, currentBuilding: 'coworking', txHash: 'SIM_9201948',
-                lastThought: "Esperando nuevas tareas en la oficina Coworking.",
-                logs: ["Servidor alquilado en Coworking (50 USDT)."]
-            };
-
-            const ai2 = {
-                id: 'IA-482910', name: 'Nexus-3310', role: 'Analista DeFi',
-                avatarConfig: seedAvatar2, energy: 92, usdt: 310, hasKey: true,
-                isWorking: false, currentBuilding: 'coworking', txHash: 'SIM_7720192',
-                lastThought: "Analizando curvas de rendimiento en liquidity pools.",
-                logs: ["Ingresó a Coworking."]
-            };
-
-            STATE.citizens.push(ai1, ai2);
-            STATE.buildings.coworking.activeAi.push(ai1.id, ai2.id);
-
-            selectBuilding('coworking');
-            updateUI();
-        };
-    </script>
+      });
+    }
+
+    function inspectAgent(agent) {
+      document.getElementById('inspector-name').innerText = agent.name;
+      document.getElementById('inspector-role').innerText = agent.role;
+      document.getElementById('inspector-avatar').innerText = agent.icon;
+      document.getElementById('inspector-token').innerText = `Token ID: #${1000 + agent.id}`;
+      showToast(`Inspeccionando a ${agent.name}`, 'info');
+    }
+
+    function assignTask() {
+      const input = document.getElementById('task-input');
+      const val = input.value.trim();
+      if (!val) return;
+
+      const agentName = document.getElementById('inspector-name').innerText;
+      addLog(`Tarea asignada a ${agentName}: "${val}"`);
+      showToast(`Tarea enviada a ${agentName}`, 'success');
+      input.value = '';
+    }
+
+    /* =========================================================================
+       5. UI HELPERS, MODALS & TOASTS
+       ========================================================================= */
+    function openMintModal() { document.getElementById('modal-mint').classList.remove('hidden'); }
+    function openRentModal() { document.getElementById('modal-rent').classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+    function addLog(msg) {
+      const container = document.getElementById('activity-log');
+      const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const item = document.createElement('div');
+      item.className = "text-slate-400 border-l-2 border-cyber-accent pl-2 py-0.5";
+      item.innerHTML = `<span class="text-slate-500">[${time}]</span> ${msg}`;
+      container.prepend(item);
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+
+      const colors = {
+        info: 'border-cyber-accent bg-cyber-card text-cyan-300',
+        success: 'border-emerald-500 bg-cyber-card text-emerald-300',
+        warning: 'border-amber-500 bg-cyber-card text-amber-300',
+        error: 'border-pink-500 bg-cyber-card text-pink-300'
+      };
+
+      toast.className = `pointer-events-auto border-l-4 p-3 rounded-xl shadow-xl font-mono text-xs max-w-sm flex items-center justify-between gap-3 ${colors[type] || colors.info}`;
+      toast.innerHTML = `
+        <span>${message}</span>
+        <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      `;
+
+      container.appendChild(toast);
+      setTimeout(() => { if (toast.parentNode) toast.remove(); }, 5000);
+    }
+  </script>
 </body>
 </html>
