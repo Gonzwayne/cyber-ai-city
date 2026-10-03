@@ -32,6 +32,15 @@
             width: 100%;
             height: 100%;
         }
+        .tab-btn {
+            transition: all 0.2s ease;
+        }
+        .tab-btn.active {
+            background-color: #06b6d4;
+            color: #ffffff;
+            border-color: #22d3ee;
+            box-shadow: 0 0 10px rgba(6, 182, 212, 0.4);
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -62,8 +71,9 @@
     <!-- Main Grid -->
     <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
 
-        <!-- Left Column: Map Viewport -->
+        <!-- Left Column: Navigation Tabs & Canvas -->
         <div class="lg:col-span-2 space-y-4">
+            
             <!-- Contract Status Banner -->
             <div class="bg-gray-900/80 border border-gray-800 rounded-xl p-4 flex flex-wrap justify-between items-center gap-3">
                 <div class="flex items-center gap-2">
@@ -83,11 +93,33 @@
                 </div>
             </div>
 
+            <!-- Building & Location Selector Tabs -->
+            <div class="flex flex-wrap gap-2 bg-gray-900/60 p-2 rounded-xl border border-gray-800 text-xs font-semibold">
+                <button onclick="switchView('exterior')" id="tab-exterior" class="tab-btn active px-3 py-2 rounded-lg border border-transparent flex items-center gap-1.5">
+                    🗺️ Mapa Exterior (Ciudad)
+                </button>
+                <button onclick="switchView('coworking')" id="tab-coworking" class="tab-btn px-3 py-2 rounded-lg border border-transparent text-gray-400 hover:text-white flex items-center gap-1.5">
+                    💻 Coworking IA
+                </button>
+                <button onclick="switchView('resto')" id="tab-resto" class="tab-btn px-3 py-2 rounded-lg border border-transparent text-gray-400 hover:text-white flex items-center gap-1.5">
+                    🍽️ Restó & Gastro
+                </button>
+                <button onclick="switchView('bar')" id="tab-bar" class="tab-btn px-3 py-2 rounded-lg border border-transparent text-gray-400 hover:text-white flex items-center gap-1.5">
+                    🍸 Cyber Bar
+                </button>
+                <button onclick="switchView('hotel')" id="tab-hotel" class="tab-btn px-3 py-2 rounded-lg border border-transparent text-gray-400 hover:text-white flex items-center gap-1.5">
+                    🏨 Hotel Boutique
+                </button>
+                <button onclick="switchView('casas')" id="tab-casas" class="tab-btn px-3 py-2 rounded-lg border border-transparent text-gray-400 hover:text-white flex items-center gap-1.5">
+                    🏠 Casas Residenciales
+                </button>
+            </div>
+
             <!-- Isometric Viewport Canvas -->
             <div class="canvas-container neon-border">
                 <div class="absolute top-3 left-3 bg-gray-950/80 backdrop-blur-md px-3 py-1.5 rounded-md border border-gray-800 text-xs font-semibold text-cyan-400 flex items-center gap-2 z-10">
                     <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
-                    MAPA ISOMÉTRICO URBANO
+                    <span id="currentViewTitle">VISTA EXTERIOR - CIUDAD IA (ISOMÉTRICA)</span>
                 </div>
                 <div class="absolute top-3 right-3 bg-gray-950/80 backdrop-blur-md px-3 py-1.5 rounded-md border border-gray-800 text-xs text-gray-300 z-10">
                     👥 <span id="agentCount">4</span> Agentes Activos
@@ -97,9 +129,9 @@
             </div>
 
             <div class="bg-gray-900/50 border border-gray-800 rounded-xl p-3 flex justify-between items-center text-xs text-gray-400">
-                <span>💡 Haz clic en los edificios o en los avatares para examinarlos.</span>
+                <span>💡 Usa los botones superiores para navegar entre la ciudad y el interior de los edificios.</span>
                 <button onclick="consumeService()" class="bg-amber-600/80 hover:bg-amber-500 text-white px-3 py-1.5 rounded-lg transition">
-                    ⚡ Probar Consumo Servicio (10 USDT)
+                    ⚡ Probar Consumo Serv (10 USDT)
                 </button>
             </div>
         </div>
@@ -198,6 +230,7 @@
         ];
 
         let provider, signer, userAddress;
+        let currentView = 'exterior';
 
         // Initialize Web3 Connection
         async function connectWallet() {
@@ -263,7 +296,7 @@
             try {
                 const cityContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
                 logActivity("Consumiendo servicio de IA (10 USDT)...");
-                const tx = await cityContract.consumeService(1001, "Restó");
+                const tx = await cityContract.consumeService(1001, currentView);
                 await tx.wait();
                 logActivity("Servicio consumido con éxito.");
             } catch (e) {
@@ -288,6 +321,31 @@
             }
         }
 
+        // --- VIEW SWITCHING ---
+        function switchView(viewName) {
+            currentView = viewName;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active', 'bg-cyan-600', 'text-white');
+                btn.classList.add('text-gray-400');
+            });
+
+            const activeBtn = document.getElementById(`tab-${viewName}`);
+            if (activeBtn) {
+                activeBtn.classList.add('active');
+                activeBtn.classList.remove('text-gray-400');
+            }
+
+            const titles = {
+                'exterior': 'VISTA EXTERIOR - CIUDAD IA (ISOMÉTRICA)',
+                'coworking': 'INTERIOR - COWORKING IA TECH',
+                'resto': 'INTERIOR - RESTÓ & GASTRO IA',
+                'bar': 'INTERIOR - CYBER BAR IA',
+                'hotel': 'INTERIOR - HOTEL BOUTIQUE IA',
+                'casas': 'INTERIOR - RESIDENCIAS IA'
+            };
+            document.getElementById('currentViewTitle').innerText = titles[viewName] || 'VISTA CIUDAD';
+        }
+
         // --- ISOMETRIC CANVAS ENGINE ---
         const canvas = document.getElementById('cityCanvas');
         const ctx = canvas.getContext('2d');
@@ -299,7 +357,6 @@
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        // Agents Data
         const agents = [
             { id: 1001, name: "Alpha-01", role: "Smart Contracts Dev", icon: "🤖", x: 200, y: 320, targetX: 200, targetY: 320, location: "Coworking Tech", color: "#06b6d4" },
             { id: 1002, name: "Cyra-X", role: "Data Analyst", icon: "👾", x: 120, y: 420, targetX: 120, targetY: 420, location: "Calle Principal", color: "#a855f7" },
@@ -307,14 +364,47 @@
             { id: 1004, name: "Valkyrie", role: "Security Sentinel", icon: "🛸", x: 550, y: 360, targetX: 550, targetY: 360, location: "Hotel Boutique", color: "#10b981" }
         ];
 
-        // Draw Isometric Grid & Isometric Isometric Buildings
-        function drawIsometricIsometricMap() {
+        function drawScene() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+            if (currentView === 'exterior') {
+                drawExteriorView();
+            } else {
+                drawInteriorView(currentView);
+            }
+
+            // Draw Agents
+            agents.forEach(agent => {
+                agent.x += (agent.targetX - agent.x) * 0.03;
+                agent.y += (agent.targetY - agent.y) * 0.03;
+
+                if (Math.abs(agent.x - agent.targetX) < 2 && Math.abs(agent.y - agent.targetY) < 2) {
+                    agent.targetX = 150 + Math.random() * (canvas.width - 300);
+                    agent.targetY = 220 + Math.random() * 200;
+                }
+
+                ctx.fillStyle = agent.color;
+                ctx.beginPath();
+                ctx.arc(agent.x, agent.y, 14, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.font = "14px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText(agent.icon, agent.x, agent.y + 5);
+
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "bold 10px monospace";
+                ctx.fillText(agent.name, agent.x, agent.y + 26);
+            });
+
+            requestAnimationFrame(drawScene);
+        }
+
+        function drawExteriorView() {
             const centerX = canvas.width / 2;
             const centerY = 120;
 
-            // Isometric Grid Floor
+            // Grid
             ctx.strokeStyle = "rgba(6, 182, 212, 0.08)";
             ctx.lineWidth = 1;
             for (let i = -10; i <= 10; i++) {
@@ -329,45 +419,39 @@
                 ctx.stroke();
             }
 
-            // Draw Buildings (Isometric Cubes with Neon Outlines)
+            // Detailed Isometric Buildings
             drawBuilding(centerX - 160, centerY + 120, 110, 140, 130, "COWORKING TECH", "#06b6d4");
             drawBuilding(centerX + 60, centerY + 80, 100, 110, 120, "CYBER BAR", "#a855f7");
             drawBuilding(centerX - 60, centerY + 200, 120, 100, 100, "RESTÓ & GASTRO", "#10b981");
             drawBuilding(centerX + 120, centerY + 210, 110, 120, 140, "HOTEL BOUTIQUE", "#ec4899");
+        }
 
-            // Update & Render Agents
-            agents.forEach(agent => {
-                // Smooth Movement
-                agent.x += (agent.targetX - agent.x) * 0.03;
-                agent.y += (agent.targetY - agent.y) * 0.03;
+        function drawInteriorView(name) {
+            // Interior Room Layout Canvas Render
+            ctx.fillStyle = "#090d16";
+            ctx.fillRect(40, 40, canvas.width - 80, canvas.height - 80);
 
-                if (Math.abs(agent.x - agent.targetX) < 2 && Math.abs(agent.y - agent.targetY) < 2) {
-                    // Assign new random waypoint along streets
-                    agent.targetX = 150 + Math.random() * (canvas.width - 300);
-                    agent.targetY = 220 + Math.random() * 200;
-                }
+            ctx.strokeStyle = "#1e293b";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(40, 40, canvas.width - 80, canvas.height - 80);
 
-                // Render Agent Avatar & Speech Bubble
-                ctx.fillStyle = agent.color;
+            // Furniture & Room Accents
+            ctx.fillStyle = "#06b6d4";
+            ctx.font = "bold 18px monospace";
+            ctx.textAlign = "center";
+            ctx.fillText("ZONA DE INTERIOR: " + name.toUpperCase(), canvas.width / 2, 80);
+
+            // Decorative Grid
+            ctx.strokeStyle = "rgba(30, 41, 59, 0.4)";
+            for (let x = 60; x < canvas.width - 60; x += 40) {
                 ctx.beginPath();
-                ctx.arc(agent.x, agent.y, 14, 0, Math.PI * 2);
-                ctx.fill();
-
-                ctx.font = "14px sans-serif";
-                ctx.textAlign = "center";
-                ctx.fillText(agent.icon, agent.x, agent.y + 5);
-
-                // Name Tag
-                ctx.fillStyle = "#ffffff";
-                ctx.font = "bold 10px monospace";
-                ctx.fillText(agent.name, agent.x, agent.y + 26);
-            });
-
-            requestAnimationFrame(drawIsometricIsometricMap);
+                ctx.moveTo(x, 100);
+                ctx.lineTo(x, canvas.height - 60);
+                ctx.stroke();
+            }
         }
 
         function drawBuilding(x, y, width, length, height, title, color) {
-            // Top Face
             ctx.fillStyle = "rgba(15, 23, 42, 0.9)";
             ctx.strokeStyle = color;
             ctx.lineWidth = 2;
@@ -381,7 +465,6 @@
             ctx.fill();
             ctx.stroke();
 
-            // Left Face
             ctx.beginPath();
             ctx.moveTo(x - length, y - height - length / 2);
             ctx.lineTo(x, y - height);
@@ -392,7 +475,6 @@
             ctx.fill();
             ctx.stroke();
 
-            // Right Face
             ctx.beginPath();
             ctx.moveTo(x, y - height);
             ctx.lineTo(x + width, y - height - width / 2);
@@ -403,14 +485,13 @@
             ctx.fill();
             ctx.stroke();
 
-            // Neon Title Label
             ctx.fillStyle = color;
             ctx.font = "bold 11px monospace";
             ctx.textAlign = "center";
             ctx.fillText(title, x, y - height - 15);
         }
 
-        drawIsometricIsometricMap();
+        drawScene();
     </script>
 </body>
 </html>
