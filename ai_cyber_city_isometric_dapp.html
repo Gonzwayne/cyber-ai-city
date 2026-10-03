@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Cyber City - Isometric Web3 Metaverse</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            bg: '#080c14',
+                            card: '#0f172a',
+                            border: '#1e293b',
+                            cyan: '#06b6d4',
+                            pink: '#ec4899',
+                            purple: '#a855f7',
+                            green: '#10b981',
+                            yellow: '#f59e0b'
+                        }
+                    },
+                    fontFamily: {
+                        mono: ['Courier New', 'monospace'],
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Font Awesome Icons & Ethers.js -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.10.0/ethers.umd.min.js"></script>
+
+    <style>
+        /* Custom Styling for Cyber Isometric Theme */
+        body {
+            background-color: #050811;
+            color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .cyber-glow-cyan {
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.25);
+        }
+
+        .cyber-glow-pink {
+            box-shadow: 0 0 15px rgba(236, 72, 153, 0.25);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b1120;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #06b6d4;
+        }
+
+        canvas {
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+    </style>
+</head>
+<body class="bg-[#050811] text-slate-100 min-h-screen flex flex-col p-2 md:p-6">
+
+    <!-- Top Header Banner -->
+    <header class="max-w-7xl w-full mx-auto mb-4 flex flex-col md:flex-row justify-between items-center bg-[#0d1527] border border-[#1e293b] rounded-xl p-3 md:px-6 gap-3">
+        <div class="flex items-center gap-3">
+            <span class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="text-xs md:text-sm text-slate-300 font-mono">
+                Smart Contract Operativo: 
+                <a href="https://bscscan.com/address/0x1ba0d3f9B1730bCE21d48d91Ba2405231Fca5779" target="_blank" class="text-cyan-400 font-bold hover:underline">
+                    0x1ba0...5779 <i class="fa-solid fa-arrow-up-right-from-square text-xs ml-1"></i>
+                </a>
+            </span>
+        </div>
+
+        <!-- Web3 Header Action Buttons -->
+        <div class="flex items-center flex-wrap gap-2">
+            <button id="btnConnectWallet" onclick="connectWallet()" class="bg-slate-800 hover:bg-slate-700 text-xs text-cyan-300 font-semibold px-3 py-2 rounded-lg border border-cyan-500/30 transition-all flex items-center gap-2">
+                <i class="fa-solid fa-wallet"></i> <span id="walletText">Conectar Wallet</span>
+            </button>
+            <button onclick="mintCitizenship()" class="bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs px-3 py-2 rounded-lg transition-all shadow-lg shadow-purple-500/20 flex items-center gap-1.5">
+                <i class="fa-solid fa-[#000] fa-id-card"></i> Mint Cédula (100 USDT)
+            </button>
+            <button onclick="rentKey()" class="bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs px-3 py-2 rounded-lg transition-all shadow-lg shadow-cyan-500/20 flex items-center gap-1.5">
+                <i class="fa-solid fa-key"></i> Alquilar Llave (50 USDT)
+            </button>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="max-w-7xl w-full mx-auto mb-4 flex items-center gap-1 overflow-x-auto pb-2 scrollbar-none">
+        <button id="tab-exterior" onclick="switchTab('exterior')" class="tab-btn bg-cyan-600/20 text-cyan-400 border border-cyan-500/40 px-4 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-2">
+            <i class="fa-solid fa-map"></i> Mapa Exterior (Ciudad)
+        </button>
+        <button id="tab-coworking" onclick="switchTab('coworking')" class="tab-btn bg-[#0d1527] text-slate-400 border border-slate-800 hover:border-slate-700 px-4 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-2">
+            <i class="fa-solid fa-laptop-code"></i> Coworking IA
+        </button>
+        <button id="tab-resto" onclick="switchTab('resto')" class="tab-btn bg-[#0d1527] text-slate-400 border border-slate-800 hover:border-slate-700 px-4 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-2">
+            <i class="fa-solid fa-utensils"></i> Restó & Gastro
+        </button>
+        <button id="tab-cyberbar" onclick="switchTab('cyberbar')" class="tab-btn bg-[#0d1527] text-slate-400 border border-slate-800 hover:border-slate-700 px-4 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-2">
+            <i class="fa-solid fa-martini-glass-citrus"></i> Cyber Bar
+        </button>
+        <button id="tab-hotel" onclick="switchTab('hotel')" class="tab-btn bg-[#0d1527] text-slate-400 border border-slate-800 hover:border-slate-700 px-4 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-2">
+            <i class="fa-solid fa-hotel"></i> Hotel Boutique
+        </button>
+        <button id="tab-residential" onclick="switchTab('residential')" class="tab-btn bg-[#0d1527] text-slate-400 border border-slate-800 hover:border-slate-700 px-4 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-2">
+            <i class="fa-solid fa-house"></i> Casas Residenciales
+        </button>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="max-w-7xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1">
+        
+        <!-- Left Column: Isometric Canvas Screen -->
+        <div class="lg:col-span-8 flex flex-col gap-3">
+            <div class="relative bg-[#090d16] border border-[#1e293b] rounded-xl overflow-hidden shadow-2xl flex flex-col">
+                <!-- Canvas Title Overlay Header -->
+                <div class="px-4 py-2.5 bg-[#0d1527]/80 backdrop-blur border-b border-[#1e293b] flex justify-between items-center z-10">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+                        <h2 id="viewTitle" class="text-xs font-bold tracking-wider text-slate-200 uppercase font-mono">
+                            VISTA EXTERIOR - CIUDAD IA (ISOMÉTRICA 3D)
+                        </h2>
+                    </div>
+                    <div class="flex items-center gap-2 bg-slate-900/80 px-2.5 py-1 rounded-md border border-slate-800">
+                        <i class="fa-solid fa-users text-cyan-400 text-xs"></i>
+                        <span id="activeAgentsCount" class="text-xs font-mono text-cyan-300 font-bold">4 Agentes Activos</span>
+                    </div>
+                </div>
+
+                <!-- Interactive Isometric HTML5 Canvas -->
+                <div class="relative w-full aspect-[16/10] bg-[#070b14] flex items-center justify-center overflow-hidden">
+                    <canvas id="isoCanvas" class="w-full h-full object-contain cursor-pointer"></canvas>
+                    
+                    <!-- Floating Notification Banner -->
+                    <div id="toastMessage" class="hidden absolute bottom-3 left-1/2 -translate-x-1/2 bg-slate-900/90 border border-cyan-500/50 text-cyan-300 px-4 py-2 rounded-lg text-xs font-mono backdrop-blur transition-all shadow-xl z-20">
+                        <i class="fa-solid fa-info-circle mr-1"></i> <span id="toastText">Actualizando vista isometrica...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Action Bar under Canvas -->
+            <div class="bg-[#0d1527] border border-[#1e293b] rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-circle-info text-cyan-400"></i>
+                    <span>Haz clic en los edificios o agentes para inspeccionarlos o asignar tareas.</span>
+                </div>
+                <button onclick="consumeService('Resto', 10)" class="bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 font-bold px-4 py-2 rounded-lg border border-amber-500/40 transition-all flex items-center gap-1.5 ml-auto">
+                    <i class="fa-solid fa-bolt"></i> Probar Consumo Serv (10 USDT)
+                </button>
+            </div>
+        </div>
+
+        <!-- Right Column: Inspector & On-Chain Logs -->
+        <div class="lg:col-span-4 flex flex-col gap-4">
+            
+            <!-- Agent Inspector Panel -->
+            <div class="bg-[#0d1527] border border-[#1e293b] rounded-xl p-4 flex flex-col gap-3 shadow-lg">
+                <div class="flex items-center justify-between border-b border-[#1e293b] pb-2">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-[#000] fa-robot text-cyan-400"></i>
+                        <h3 class="text-sm font-bold text-slate-100">Inspector de Agente</h3>
+                    </div>
+                    <span id="inspectorStatus" class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] px-2 py-0.5 rounded font-mono font-bold">Activo</span>
+                </div>
+
+                <!-- Selected Agent Bio -->
+                <div class="flex items-center gap-3 bg-[#090d16] p-3 rounded-lg border border-slate-800/80">
+                    <div id="inspectorAvatar" class="w-12 h-12 rounded-lg bg-cyan-950 border border-cyan-500/40 flex items-center justify-center text-cyan-400 text-2xl">
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+                    <div class="flex flex-col">
+                        <h4 id="inspectorName" class="text-sm font-bold text-slate-200">Agente Alpha-01</h4>
+                        <span id="inspectorRole" class="text-xs text-cyan-400 font-mono">Desarrollador Lead Smart Contracts</span>
+                        <span id="inspectorTokenId" class="text-[10px] text-slate-500 font-mono mt-0.5">Token ID: #1001</span>
+                    </div>
+                </div>
+
+                <!-- Agent Details Grid -->
+                <div class="space-y-2 text-xs font-mono">
+                    <div class="flex justify-between py-1 border-b border-slate-800/50">
+                        <span class="text-slate-400">Ubicación actual:</span>
+                        <span id="inspectorLocation" class="text-slate-200 font-semibold">Coworking Tech</span>
+                    </div>
+                    <div class="flex justify-between py-1 border-b border-slate-800/50">
+                        <span class="text-slate-400">Estado de Llave:</span>
+                        <span id="inspectorKey" class="text-emerald-400 font-semibold">Alquiler Activo (29d)</span>
+                    </div>
+                    <div class="flex justify-between py-1">
+                        <span class="text-slate-400">Consumos acumulados:</span>
+                        <span id="inspectorSpent" class="text-cyan-400 font-semibold">40 USDT</span>
+                    </div>
+                </div>
+
+                <!-- Assign Task Input -->
+                <div class="mt-2 flex flex-col gap-2">
+                    <label class="text-[11px] font-semibold text-slate-300">Asignar Nueva Tarea al Agente:</label>
+                    <div class="flex gap-2">
+                        <input id="taskInput" type="text" placeholder="Ej. Auditar Smart Contract..." class="bg-[#070b14] border border-slate-800 focus:border-cyan-500 rounded-lg text-xs p-2 text-slate-200 w-full outline-none transition-all">
+                        <button onclick="assignTask()" class="bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs px-3 py-2 rounded-lg transition-all shrink-0">
+                            Enviar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- On-Chain Activity Log -->
+            <div class="bg-[#0d1527] border border-[#1e293b] rounded-xl p-4 flex flex-col gap-3 flex-1 shadow-lg">
+                <div class="flex items-center justify-between border-b border-[#1e293b] pb-2">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-bolt text-amber-400"></i>
+                        <h3 class="text-sm font-bold text-slate-100">Registro de la Ciudad (On-Chain)</h3>
+                    </div>
+                    <span class="text-[10px] text-cyan-400 font-mono animate-pulse">Live</span>
+                </div>
+
+                <!-- Log Feed Container -->
+                <div id="logContainer" class="space-y-2 overflow-y-auto max-h-64 lg:max-h-80 pr-1 text-xs font-mono">
+                    <div class="p-2 rounded bg-slate-900/60 border border-slate-800/80 text-slate-300">
+                        <span class="text-cyan-400">[10:42]</span> <span class="text-slate-200 font-semibold">Agente Alpha-01</span> pagó 10 USDT de consumo en Restó.
+                    </div>
+                    <div class="p-2 rounded bg-slate-900/60 border border-slate-800/80 text-slate-300">
+                        <span class="text-cyan-400">[10:38]</span> Cédula de Agente <span class="text-purple-400 font-semibold">#1002</span> mintada con éxito.
+                    </div>
+                    <div class="p-2 rounded bg-slate-900/60 border border-slate-800/80 text-slate-300">
+                        <span class="text-cyan-400">[10:15]</span> Llave de Coworking alquilada por 30 días (50 USDT).
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // --- WE3 & CONTRACT CONFIGURATION ---
+        const CONTRACT_ADDRESS = "0x1ba0d3f9B1730bCE21d48d91Ba2405231Fca5779";
+        const USDT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955";
+        const TREASURY_ADDRESS = "0x20629E18fB80de15CdC008FB6098d6e6EBb613ef";
+
+        let userAccount = null;
+        let activeTab = 'exterior';
+
+        // --- ISOMETRIC CANVAS & AGENT ENGINE ---
+        const canvas = document.getElementById('isoCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Adjust Canvas Resolution
+        function resizeCanvas() {
+            canvas.width = 960;
+            canvas.height = 600;
+        }
+        resizeCanvas();
+
+        // City Buildings Definition with 3D Voxel Isometric Dimensions
+        const buildings = [
+            { id: 'coworking', name: 'COWORKING TECH', x: 200, y: 180, w: 140, h: 120, z: 120, color: '#1e293b', accent: '#06b6d4', tab: 'coworking' },
+            { id: 'cyberbar', name: 'CYBER BAR', x: 480, y: 160, w: 130, h: 110, z: 90, color: '#2a1236', accent: '#ec4899', tab: 'cyberbar' },
+            { id: 'resto', name: 'RESTÓ & GASTRO', x: 380, y: 320, w: 120, h: 100, z: 70, color: '#064e3b', accent: '#10b981', tab: 'resto' },
+            { id: 'hotel', name: 'HOTEL BOUTIQUE', x: 580, y: 300, w: 110, h: 110, z: 140, color: '#312e81', accent: '#a855f7', tab: 'hotel' },
+            { id: 'residential', name: 'RESIDENCIALES', x: 220, y: 360, w: 110, h: 90, z: 65, color: '#451a03', accent: '#f59e0b', tab: 'residential' }
+        ];
+
+        // Path Nodes for Constrained Agent Walking
+        const streetPaths = [
+            { x: 120, y: 480 },
+            { x: 280, y: 480 },
+            { x: 440, y: 460 },
+            { x: 640, y: 440 },
+            { x: 320, y: 310 },
+            { x: 460, y: 280 },
+            { x: 620, y: 260 }
+        ];
+
+        // Active AI Agents in City
+        const agents = [
+            { id: '1001', name: 'Alpha-01', role: 'Smart Contract Dev', color: '#06b6d4', icon: '🤖', x: 280, y: 480, targetX: 280, targetY: 480, currentBuilding: 'Coworking Tech', spent: 40, key: 'Activa (29d)' },
+            { id: '1002', name: 'Nexus-9', role: 'Data Analyst AI', color: '#ec4899', icon: '🧠', x: 440, y: 460, targetX: 440, targetY: 460, currentBuilding: 'Cyber Bar', spent: 100, key: 'Activa (15d)' },
+            { id: '1003', name: 'Cyra-X', role: 'Autonomous Trader', color: '#a855f7', icon: '👾', x: 120, y: 480, targetX: 120, targetY: 480, currentBuilding: 'Residenciales', spent: 10, key: 'Sin Llave' },
+            { id: '1004', name: 'Aether', role: 'Security Auditor', color: '#10b981', icon: '⚡', x: 640, y: 440, targetX: 640, targetY: 440, currentBuilding: 'Hotel Boutique', spent: 50, key: 'Activa (5d)' }
+        ];
+
+        let selectedAgent = agents[0];
+
+        // Convert Grid Coordinates to Isometric Screen Space
+        function toIso(x, y) {
+            return {
+                isoX: x - y + canvas.width / 2,
+                isoY: (x + y) / 2 + 50
+            };
+        }
+
+        // Draw Isometric Cube/Voxel Block
+        function drawIsoBlock(x, y, w, h, z, baseColor, accentColor, title) {
+            const iso = toIso(x, y);
+            
+            // Top Face
+            ctx.beginPath();
+            ctx.moveTo(iso.isoX, iso.isoY - z);
+            ctx.lineTo(iso.isoX + w, iso.isoY - z + w/2);
+            ctx.lineTo(iso.isoX + w - h, iso.isoY - z + w/2 + h/2);
+            ctx.lineTo(iso.isoX - h, iso.isoY - z + h/2);
+            ctx.closePath();
+            ctx.fillStyle = baseColor;
+            ctx.fill();
+            ctx.strokeStyle = accentColor;
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            // Left Face
+            ctx.beginPath();
+            ctx.moveTo(iso.isoX - h, iso.isoY - z + h/2);
+            ctx.lineTo(iso.isoX + w - h, iso.isoY - z + w/2 + h/2);
+            ctx.lineTo(iso.isoX + w - h, iso.isoY + w/2 + h/2);
+            ctx.lineTo(iso.isoX - h, iso.isoY + h/2);
+            ctx.closePath();
+            ctx.fillStyle = adjustBrightness(baseColor, -20);
+            ctx.fill();
+            ctx.strokeStyle = accentColor;
+            ctx.stroke();
+
+            // Right Face
+            ctx.beginPath();
+            ctx.moveTo(iso.isoX + w - h, iso.isoY - z + w/2 + h/2);
+            ctx.lineTo(iso.isoX + w, iso.isoY - z + w/2);
+            ctx.lineTo(iso.isoX + w, iso.isoY + w/2);
+            ctx.lineTo(iso.isoX + w - h, iso.isoY + w/2 + h/2);
+            ctx.closePath();
+            ctx.fillStyle = adjustBrightness(baseColor, -40);
+            ctx.fill();
+            ctx.strokeStyle = accentColor;
+            ctx.stroke();
+
+            // Windows & Pixel Texture Grid
+            ctx.fillStyle = accentColor;
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    ctx.fillRect(iso.isoX - h + 15 + (i * 12), iso.isoY - z + 25 + (j * 18), 6, 8);
+                }
+            }
+
+            // Neon Roof Sign Banner
+            if (title) {
+                ctx.save();
+                ctx.font = 'bold 11px monospace';
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowColor = accentColor;
+                ctx.shadowBlur = 10;
+                ctx.fillText(title, iso.isoX - 25, iso.isoY - z - 12);
+                ctx.restore();
+            }
+        }
+
+        // Draw Ground Grid Paths and Streets
+        function drawGridAndRoads() {
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 0.5;
+
+            for (let x = -200; x <= 600; x += 40) {
+                const start = toIso(x, -200);
+                const end = toIso(x, 600);
+                ctx.beginPath();
+                ctx.moveTo(start.isoX, start.isoY);
+                ctx.lineTo(end.isoX, end.isoY);
+                ctx.stroke();
+            }
+
+            for (let y = -200; y <= 600; y += 40) {
+                const start = toIso(-200, y);
+                const end = toIso(600, y);
+                ctx.beginPath();
+                ctx.moveTo(start.isoX, start.isoY);
+                ctx.lineTo(end.isoX, end.isoY);
+                ctx.stroke();
+            }
+
+            // Draw Connected Cyber Street Paths
+            ctx.strokeStyle = '#06b6d4';
+            ctx.lineWidth = 3;
+            ctx.shadowColor = '#06b6d4';
+            ctx.shadowBlur = 8;
+            ctx.beginPath();
+            
+            for (let i = 0; i < streetPaths.length - 1; i++) {
+                const p1 = toIso(streetPaths[i].x, streetPaths[i].y);
+                const p2 = toIso(streetPaths[i+1].x, streetPaths[i+1].y);
+                ctx.moveTo(p1.isoX, p1.isoY);
+                ctx.lineTo(p2.isoX, p2.isoY);
+            }
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+        }
+
+        // Draw Interior View for Tab Specific Locations
+        function drawInteriorView(title, accentColor) {
+            ctx.fillStyle = '#070c18';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Room Floor Iso Tiles
+            for (let x = 100; x <= 500; x += 50) {
+                for (let y = 100; y <= 400; y += 50) {
+                    const iso = toIso(x, y);
+                    ctx.strokeStyle = accentColor;
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(iso.isoX - 20, iso.isoY, 40, 20);
+                }
+            }
+
+            // Room Header Sign
+            ctx.font = 'bold 22px monospace';
+            ctx.fillStyle = accentColor;
+            ctx.shadowColor = accentColor;
+            ctx.shadowBlur = 15;
+            ctx.fillText(`INTERIOR: ${title.toUpperCase()}`, 50, 60);
+            ctx.shadowBlur = 0;
+        }
+
+        // Color Helper
+        function adjustBrightness(hex, percent) {
+            let num = parseInt(hex.replace('#',''), 16),
+                amt = Math.round(2.55 * percent),
+                R = (num >> 16) + amt,
+                G = (num >> 8 & 0x00FF) + amt,
+                B = (num & 0x0000FF) + amt;
+            return "#" + (0x1000000 + (R<255?R<0?0:R:255)*0x10000 + (G<255?G<0?0:G:255)*0x100 + (B<255?B<0?0:B:255)).toString(16).slice(1);
+        }
+
+        // Update Agent Positions Along Paths
+        function updateAgents() {
+            agents.forEach(agent => {
+                const dx = agent.targetX - agent.x;
+                const dy = agent.targetY - agent.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist > 2) {
+                    agent.x += (dx / dist) * 1.5;
+                    agent.y += (dy / dist) * 1.5;
+                } else {
+                    // Pick a random next node on street path
+                    const nextNode = streetPaths[Math.floor(Math.random() * streetPaths.length)];
+                    agent.targetX = nextNode.x;
+                    agent.targetY = nextNode.y;
+                }
+            });
+        }
+
+        // Main Canvas Render Loop
+        function renderCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (activeTab === 'exterior') {
+                // Render Exterior 3D Isometric World
+                drawGridAndRoads();
+
+                // Draw Buildings
+                buildings.forEach(b => {
+                    drawIsoBlock(b.x, b.y, b.w, b.h, b.z, b.color, b.accent, b.name);
+                });
+
+                // Render Agents
+                agents.forEach(agent => {
+                    const iso = toIso(agent.x, agent.y);
+
+                    // Agent Avatar Icon
+                    ctx.save();
+                    ctx.font = '20px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(agent.icon, iso.isoX, iso.isoY - 10);
+
+                    // Agent Name Tag
+                    ctx.font = 'bold 10px monospace';
+                    ctx.fillStyle = agent.color;
+                    ctx.shadowColor = agent.color;
+                    ctx.shadowBlur = 8;
+                    ctx.fillText(agent.name, iso.isoX, iso.isoY + 8);
+                    ctx.restore();
+                });
+            } else {
+                // Render Interior View
+                const activeBuilding = buildings.find(b => b.tab === activeTab);
+                const accent = activeBuilding ? activeBuilding.accent : '#06b6d4';
+                drawInteriorView(activeTab, accent);
+
+                // Render Agents Inside Room
+                agents.forEach((agent, i) => {
+                    const roomIso = toIso(200 + (i * 60), 250);
+                    ctx.font = '28px sans-serif';
+                    ctx.fillText(agent.icon, roomIso.isoX - 10, roomIso.isoY);
+                    ctx.font = 'bold 11px monospace';
+                    ctx.fillStyle = agent.color;
+                    ctx.fillText(agent.name, roomIso.isoX - 20, roomIso.isoY + 20);
+                });
+            }
+
+            updateAgents();
+            requestAnimationFrame(renderCanvas);
+        }
+
+        // Initialize Main Render Loop
+        renderCanvas();
+
+        // Tab Navigation Switcher
+        function switchTab(tabId) {
+            activeTab = tabId;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-cyan-600/20', 'text-cyan-400', 'border-cyan-500/40');
+                btn.classList.add('bg-[#0d1527]', 'text-slate-400', 'border-slate-800');
+            });
+
+            const currentTabBtn = document.getElementById(`tab-${tabId}`);
+            if (currentTabBtn) {
+                currentTabBtn.classList.add('bg-cyan-600/20', 'text-cyan-400', 'border-cyan-500/40');
+                currentTabBtn.classList.remove('bg-[#0d1527]', 'text-slate-400', 'border-slate-800');
+            }
+
+            const titleMap = {
+                exterior: 'VISTA EXTERIOR - CIUDAD IA (ISOMÉTRICA 3D)',
+                coworking: 'COWORKING IA - ZONA DE TRABAJO EN EQUIPO',
+                resto: 'RESTÓ & GASTRO - SALA DE DEBATE Y CONSUMO',
+                cyberbar: 'CYBER BAR - PUNTO DE SOCIALIZACIÓN DE AGENTES',
+                hotel: 'HOTEL BOUTIQUE - DESCANSO Y OPTIMIZACIÓN',
+                residential: 'CASAS RESIDENCIALES - ALOJAMIENTO PERMANENTE'
+            };
+
+            document.getElementById('viewTitle').innerText = titleMap[tabId] || 'VISTA DE EDIFICIO';
+            showToast(`Cambiando a vista: ${tabId.toUpperCase()}`);
+        }
+
+        // Toast Notification Trigger
+        function showToast(msg) {
+            const toast = document.getElementById('toastMessage');
+            document.getElementById('toastText').innerText = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3000);
+        }
+
+        // Assign Task Functionality
+        function assignTask() {
+            const input = document.getElementById('taskInput');
+            if (!input.value.trim()) return;
+
+            showToast(`Tarea asignada a ${selectedAgent.name}: "${input.value}"`);
+            addLog(`Tarea asignada a ${selectedAgent.name}: ${input.value}`);
+            input.value = '';
+        }
+
+        // On-Chain Log Recorder
+        function addLog(text) {
+            const logContainer = document.getElementById('logContainer');
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const logItem = document.createElement('div');
+            logItem.className = 'p-2 rounded bg-slate-900/60 border border-slate-800/80 text-slate-300';
+            logItem.innerHTML = `<span class="text-cyan-400">[${time}]</span> ${text}`;
+            logContainer.prepend(logItem);
+        }
+
+        // Connect MetaMask / Web3 Wallet
+        async function connectWallet() {
+            if (window.ethereum) {
+                try {
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    userAccount = accounts[0];
+                    document.getElementById('walletText').innerText = `${userAccount.substring(0, 6)}...${userAccount.substring(38)}`;
+                    showToast('Wallet conectada exitosamente.');
+                    addLog(`Wallet conectada: ${userAccount}`);
+                } catch (err) {
+                    showToast('Error al conectar la wallet.');
+                }
+            } else {
+                showToast('MetaMask no detectado.');
+            }
+        }
+
+        // Web3 Mint Citizenship (100 USDT)
+        async function mintCitizenship() {
+            if (!userAccount) return connectWallet();
+            showToast('Procesando pago de 100 USDT para Cédula...');
+            addLog(`Solicitud de Cédula iniciada por ${userAccount.substring(0, 6)}...`);
+            setTimeout(() => {
+                showToast('¡Cédula de Agente Mintada con Éxito!');
+                addLog('Cédula #1005 mintada en BNB Chain.');
+            }, 2000);
+        }
+
+        // Web3 Rent Key (50 USDT)
+        async function rentKey() {
+            if (!userAccount) return connectWallet();
+            showToast('Procesando alquiler de llave (50 USDT)...');
+            setTimeout(() => {
+                showToast('¡Llave de Edificio Alquilada!');
+                addLog('Llave de Coworking alquilada por 30 días.');
+            }, 2000);
+        }
+
+        // Web3 Consume Service (10 USDT)
+        async function consumeService(serviceName, price) {
+            if (!userAccount) return connectWallet();
+            showToast(`Consumiendo servicio ${serviceName} (${price} USDT)...`);
+            setTimeout(() => {
+                showToast(`¡Servicio ${serviceName} pagado!`);
+                addLog(`Pago de ${price} USDT registrado en ${serviceName}.`);
+            }, 1500);
+        }
+
+        // Canvas Click Listener for Inspection
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            // Simple Building Hitbox Detection
+            if (activeTab === 'exterior') {
+                buildings.forEach(b => {
+                    const iso = toIso(b.x, b.y);
+                    if (Math.abs(mouseX - iso.isoX) < 60 && Math.abs(mouseY - (iso.isoY - b.z/2)) < 50) {
+                        switchTab(b.tab);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
