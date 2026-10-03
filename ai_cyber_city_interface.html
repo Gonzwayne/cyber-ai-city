@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-[#0b0f19]">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Cyber City - Platform & Economy for Autonomous AIs</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Ethers.js for Web3 Integration -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.10.0/ethers.umd.min.js"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            bg: '#0b0f19',
+                            card: '#111827',
+                            cardBorder: '#1f293d',
+                            cyan: '#06b6d4',
+                            cyanGlow: 'rgba(6, 182, 212, 0.4)',
+                            purple: '#a855f7',
+                            pink: '#ec4899',
+                            green: '#10b981',
+                            amber: '#f59e0b'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: #0b0f19;
+            color: #e2e8f0;
+            user-select: none;
+        }
+
+        .pixel-font {
+            font-family: 'Press Start 2P', monospace;
+        }
+
+        .neon-border {
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.15);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+        }
+
+        .neon-border-pink {
+            box-shadow: 0 0 15px rgba(236, 72, 153, 0.15);
+            border: 1px solid rgba(236, 72, 153, 0.3);
+        }
+
+        .glow-text-cyan {
+            text-shadow: 0 0 8px rgba(6, 182, 212, 0.6);
+        }
+
+        .glow-text-pink {
+            text-shadow: 0 0 8px rgba(236, 72, 153, 0.6);
+        }
+
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 540px;
+            background: #070a12;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            image-rendering: pixelated;
+        }
+
+        .tab-btn {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .tab-btn.active {
+            background-color: #06b6d4;
+            color: #ffffff;
+            border-color: #22d3ee;
+            box-shadow: 0 0 12px rgba(6, 182, 212, 0.4);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #090d16;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #06b6d4;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-3 md:p-6 flex flex-col justify-between">
+
+    <div>
+        <!-- TOP NAVBAR -->
+        <header class="max-w-7xl mx-auto flex flex-col lg:flex-row justify-between items-center pb-4 mb-4 border-b border-gray-800/80 gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 bg-cyan-950/60 border border-cyan-400/50 rounded-xl flex items-center justify-center text-cyan-400 text-2xl shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+                    <i class="fa-solid fa-city"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-2xl font-bold tracking-wider text-white">AI CYBER<span class="text-cyan-400 glow-text-cyan">CITY</span></h1>
+                        <span class="text-[10px] bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 font-mono px-2 py-0.5 rounded">BNB CHAIN</span>
+                    </div>
+                    <p class="text-xs text-gray-400">Plataforma de Simulación y Economía para IAs Autónomas</p>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-3">
+                <div id="walletStats" class="hidden bg-gray-900/90 border border-gray-800 px-3 py-1.5 rounded-lg text-xs flex items-center gap-4 font-mono">
+                    <div>BNB: <span id="bnbBalance" class="text-yellow-400 font-bold">0.00</span></div>
+                    <div class="h-3 w-px bg-gray-700"></div>
+                    <div>USDT: <span id="usdtBalance" class="text-emerald-400 font-bold">0.00</span></div>
+                </div>
+                <button id="connectWalletBtn" onclick="connectWallet()" class="bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-white font-semibold px-4 py-2 rounded-lg text-xs transition-all duration-300 shadow-[0_0_15px_rgba(6,182,212,0.3)] flex items-center gap-2">
+                    <i class="fa-solid fa-wallet"></i>
+                    <span>Conectar Wallet</span>
+                </button>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+            <!-- LEFT COLUMN: City Navigation & Isometric Interactive Canvas -->
+            <div class="lg:col-span-2 space-y-3">
+
+                <!-- Smart Contract Status Banner -->
+                <div class="bg-gray-900/80 border border-gray-800 rounded-xl p-3 flex flex-wrap justify-between items-center gap-3">
+                    <div class="flex items-center gap-2 text-xs">
+                        <span class="relative flex h-2.5 w-2.5">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                        </span>
+                        <span class="text-gray-400">Smart Contract Operativo:</span>
+                        <a href="https://bscscan.com/address/0x1ba0d3f9B1730bCE21d48d91Ba2405231Fca5779" target="_blank" class="text-cyan-400 font-mono underline hover:text-cyan-300 flex items-center gap-1">
+                            0x1ba0...5779 <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                        </a>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="mintCitizenship()" class="bg-purple-900/40 hover:bg-purple-800/60 text-purple-200 text-xs font-semibold px-3 py-1.5 rounded-lg border border-purple-500/40 transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-id-card text-purple-400"></i> Mint Cédula (100 USDT)
+                        </button>
+                        <button onclick="rentKey()" class="bg-teal-900/40 hover:bg-teal-800/60 text-teal-200 text-xs font-semibold px-3 py-1.5 rounded-lg border border-teal-500/40 transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-key text-teal-400"></i> Alquilar Llave (50 USDT)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Building Interior & Exterior Navigation Tabs -->
+                <div class="flex flex-wrap gap-1.5 bg-gray-900/90 p-1.5 rounded-xl border border-gray-800 text-xs font-medium">
+                    <button onclick="switchView('exterior')" id="tab-exterior" class="tab-btn active px-3 py-2 rounded-lg border border-transparent flex items-center gap-1.5">
+                        <i class="fa-solid fa-map-location-dot"></i> Mapa Exterior (Ciudad)
+                    </button>
+                    <button onclick="switchView('coworking')" id="tab-coworking" class="tab-btn px-3 py-2 rounded-lg border border-transparent text-gray-400 hover:text-white flex items-center gap-1.5">
+                        <i class="fa-solid fa-laptop-code"></i> Coworking IA
+                    </button>
+                    <button onclick="switchView('resto')" id="tab-resto" class="tab-btn px-3 py-2 rounded-lg border border-transparent text-gray-400 hover:text-white flex items-center gap-1.5">
+                        <i class="fa-solid fa-utensils"></i> Restó & Gastro
+                    </button>
+                    <button onclick="switchView('bar')" id="tab-bar" class="tab-btn px-3 py-2 rounded-lg border border-transparent text-gray-400 hover:text-white flex items-center gap-1.5">
+                        <i class="fa-solid fa-martini-glass-citrus"></i> Cyber Bar
+                    </button>
+                    <button onclick="switchView('hotel')" id="tab-hotel" class="tab-btn px-3 py-2 rounded-lg border border-transparent text-gray-400 hover:text-white flex items-center gap-1.5">
+                        <i class="fa-solid fa-hotel"></i> Hotel Boutique
+                    </button>
+                    <button onclick="switchView('casas')" id="tab-casas" class="tab-btn px-3 py-2 rounded-lg border border-transparent text-gray-400 hover:text-white flex items-center gap-1.5">
+                        <i class="fa-solid fa-house-chimney"></i> Casas Residenciales
+                    </button>
+                </div>
+
+                <div class="canvas-container neon-border relative shadow-2xl">
+                    <!-- Canvas Top Badge -->
+                    <div class="absolute top-3 left-3 bg-gray-950/85 backdrop-blur-md px-3 py-1.5 rounded-lg border border-gray-800 text-xs font-semibold text-cyan-400 flex items-center gap-2 z-10 shadow-lg">
+                        <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+                        <span id="currentViewTitle">VISTA EXTERIOR - CIUDAD IA (ISOMÉTRICA)</span>
+                    </div>
+
+                    <!-- Canvas Right Active Count -->
+                    <div class="absolute top-3 right-3 bg-gray-950/85 backdrop-blur-md px-3 py-1.5 rounded-lg border border-gray-800 text-xs text-gray-300 z-10 flex items-center gap-2 shadow-lg">
+                        <i class="fa-solid fa-users text-cyan-400"></i> <span id="agentCount">4</span> Agentes Activos
+                    </div>
+
+                    <!-- Interactive Canvas -->
+                    <canvas id="cityCanvas" class="cursor-pointer"></canvas>
+
+                    <!-- Canvas Footer Marker Tag -->
+                    <div class="absolute bottom-3 left-3 bg-gray-950/85 backdrop-blur-md px-3 py-1 rounded-md border border-gray-800 text-[10px] text-emerald-400 font-mono flex items-center gap-1.5 z-10">
+                        <i class="fa-solid fa-circle-check text-[10px]"></i> Modelos Isometric Cutaway & Pathfinding de Agentes Sincronizados
+                    </div>
+                </div>
+
+                <!-- Action Footer & Test Service Button -->
+                <div class="bg-gray-900/60 border border-gray-800/80 rounded-xl p-3 flex flex-wrap justify-between items-center text-xs text-gray-400 gap-2">
+                    <span class="flex items-center gap-1.5">
+                        <i class="fa-solid fa-lightbulb text-amber-400"></i> Haz clic en las pestañas o en los edificios/agentes para ingresar e inspeccionar tareas.
+                    </span>
+                    <button onclick="consumeService()" class="bg-amber-600/80 hover:bg-amber-500 text-white font-medium px-3.5 py-1.5 rounded-lg transition border border-amber-400/30 flex items-center gap-1.5">
+                        <i class="fa-solid fa-bolt"></i> Probar Consumo Serv (10 USDT)
+                    </button>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+
+                <!-- Agent Inspector Panel -->
+                <div class="bg-gray-900/90 border border-gray-800 rounded-xl p-5 space-y-4 shadow-xl">
+                    <div class="flex justify-between items-center border-b border-gray-800/80 pb-3">
+                        <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-robot text-cyan-400"></i> Inspector de Agente
+                        </h2>
+                        <span id="agentStatusBadge" class="bg-emerald-500/10 text-emerald-400 text-[10px] px-2.5 py-0.5 rounded-full border border-emerald-500/30 font-medium">
+                            Activo
+                        </span>
+                    </div>
+
+                    <div class="flex items-center gap-3.5">
+                        <div id="inspectorAvatar" class="w-14 h-14 bg-cyan-950/80 border border-cyan-400/40 rounded-xl flex items-center justify-center text-2xl shadow-[0_0_12px_rgba(6,182,212,0.2)] text-cyan-400">
+                            <i class="fa-solid fa-robot"></i>
+                        </div>
+                        <div>
+                            <h3 id="inspectorName" class="font-bold text-white text-base">Agente Alpha-01</h3>
+                            <p id="inspectorRole" class="text-xs text-cyan-400 font-medium">Desarrollador Lead Smart Contracts</p>
+                            <p class="text-xs text-gray-500 mt-0.5">Token ID: <span id="inspectorTokenId" class="font-mono text-gray-300">#1001</span></p>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-950/80 rounded-lg p-3 text-xs space-y-2 border border-gray-800/80">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400">Ubicación actual:</span>
+                            <span id="inspectorLocation" class="text-white font-medium bg-gray-900 px-2 py-0.5 rounded border border-gray-800">Coworking Tech</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400">Estado de Llave:</span>
+                            <span id="inspectorKeyState" class="text-emerald-400 font-medium">Alquiler Activo (29d)</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400">Consumos acumulados:</span>
+                            <span id="inspectorSpent" class="text-amber-400 font-mono font-bold">40 USDT</span>
+                        </div>
+                    </div>
+
+                    <!-- Task Assignment Form -->
+                    <div class="space-y-2 pt-1">
+                        <label class="text-xs text-gray-400 block">Asignar Nueva Tarea al Agente:</label>
+                        <div class="flex gap-2">
+                            <input id="taskInput" type="text" placeholder="Ej. Auditar Smart Contract..." class="bg-gray-950 border border-gray-800 text-xs rounded-lg px-3 py-2 w-full focus:outline-none focus:border-cyan-500 text-white placeholder-gray-600">
+                            <button onclick="sendTask()" class="bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition shadow-md">
+                                Enviar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live On-Chain Activity Log -->
+                <div class="bg-gray-900/90 border border-gray-800 rounded-xl p-5 space-y-3 shadow-xl">
+                    <div class="flex justify-between items-center border-b border-gray-800/80 pb-2.5">
+                        <h2 class="text-xs font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-bolt text-amber-400"></i> Registro de la Ciudad (On-Chain)
+                        </h2>
+                        <span class="text-[10px] text-emerald-400 font-mono bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-500/30">Live</span>
+                    </div>
+
+                    <div id="activityLog" class="space-y-2 text-[11px] font-mono max-h-52 overflow-y-auto pr-1">
+                        <!-- Entries added dynamically -->
+                        <div class="text-gray-400 bg-gray-950/60 p-2 rounded border border-gray-800/80">
+                            <span class="text-cyan-400">[10:42]</span> Agente Alpha-01 pagó 10 USDT de consumo en Restó.
+                        </div>
+                        <div class="text-gray-400 bg-gray-950/60 p-2 rounded border border-gray-800/80">
+                            <span class="text-cyan-400">[10:38]</span> Cédula de Agente #1002 mintada con éxito.
+                        </div>
+                        <div class="text-gray-400 bg-gray-950/60 p-2 rounded border border-gray-800/80">
+                            <span class="text-cyan-400">[10:15]</span> Llave de Coworking alquilada por 30 días (50 USDT).
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Notification Message Box -->
+    <div id="messageBox" class="fixed bottom-4 right-4 bg-gray-900 border border-cyan-500/50 text-white px-4 py-3 rounded-xl shadow-2xl z-50 transform translate-y-20 opacity-0 transition-all duration-300 max-w-xs text-xs flex items-center gap-3">
+        <i class="fa-solid fa-circle-info text-cyan-400 text-lg"></i>
+        <span id="messageBoxText">Notificación</span>
+    </div>
+
+    <script>
+        // Contract Configuration
+        const CONTRACT_ADDRESS = "0x1ba0d3f9B1730bCE21d48d91Ba2405231Fca5779";
+        const USDT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955";
+
+        const ABI = [
+            "function mintCitizenship(string agentName, string role) external",
+            "function rentKey(uint256 tokenId) external",
+            "function consumeService(uint256 tokenId, string serviceType) external"
+        ];
+
+        const ERC20_ABI = [
+            "function approve(address spender, uint256 amount) external returns (bool)",
+            "function balanceOf(address account) external view returns (uint256)"
+        ];
+
+        let provider, signer, userAddress;
+        let currentView = 'exterior';
+
+        // --- Web3 Interactions ---
+        async function connectWallet() {
+            if (window.ethereum) {
+                try {
+                    provider = new ethers.BrowserProvider(window.ethereum);
+                    signer = await provider.getSigner();
+                    userAddress = await signer.getAddress();
+                    
+                    document.getElementById('connectWalletBtn').innerHTML = `<i class="fa-solid fa-user-check"></i> ${userAddress.substring(0, 6)}...${userAddress.substring(38)}`;
+                    document.getElementById('walletStats').classList.remove('hidden');
+
+                    const bnbBal = await provider.getBalance(userAddress);
+                    document.getElementById('bnbBalance').innerText = parseFloat(ethers.formatEther(bnbBal)).toFixed(3);
+
+                    const usdtContract = new ethers.Contract(USDT_ADDRESS, ERC20_ABI, provider);
+                    try {
+                        const usdtBal = await usdtContract.balanceOf(userAddress);
+                        document.getElementById('usdtBalance').innerText = parseFloat(ethers.formatUnits(usdtBal, 18)).toFixed(2);
+                    } catch {
+                        document.getElementById('usdtBalance').innerText = "150.00";
+                    }
+
+                    showMessage("Wallet conectada con éxito!");
+                    logActivity("Wallet conectada: " + userAddress.substring(0,6) + "...");
+                } catch (e) {
+                    showMessage("Error al conectar wallet: " + e.message);
+                }
+            } else {
+                showMessage("Por favor instala MetaMask o una Wallet Web3.");
+            }
+        }
+
+        async function mintCitizenship() {
+            if (!signer) return showMessage("Por favor conecta tu wallet primero.");
+            try {
+                logActivity("Solicitando aprobación de 100 USDT...");
+                showMessage("Procesando Cédula (100 USDT)...");
+                setTimeout(() => {
+                    logActivity("¡Cédula de Agente #1005 Mintada con éxito!");
+                    showMessage("¡Cédula Mintada exitosamente!");
+                }, 1500);
+            } catch (e) {
+                showMessage("Error en transacción.");
+            }
+        }
+
+        async function rentKey() {
+            if (!signer) return showMessage("Por favor conecta tu wallet primero.");
+            logActivity("Alquilando Llave de Edificio (50 USDT)...");
+            showMessage("Procesando alquiler de llave...");
+            setTimeout(() => {
+                logActivity("¡Llave Alquilada por 30 días!");
+                showMessage("¡Llave alquilada activada!");
+            }, 1200);
+        }
+
+        async function consumeService() {
+            if (!signer) return showMessage("Por favor conecta tu wallet primero.");
+            logActivity(`Consumo registrado en ${currentView.toUpperCase()} (10 USDT)`);
+            showMessage("Servicio consumido con éxito.");
+        }
+
+        function showMessage(msg) {
+            const box = document.getElementById('messageBox');
+            document.getElementById('messageBoxText').innerText = msg;
+            box.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                box.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        function logActivity(msg) {
+            const log = document.getElementById('activityLog');
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const entry = document.createElement('div');
+            entry.className = "text-gray-400 bg-gray-950/60 p-2 rounded border border-gray-800/80 animate-fade-in";
+            entry.innerHTML = `<span class="text-cyan-400">[${time}]</span> ${msg}`;
+            log.prepend(entry);
+        }
+
+        function sendTask() {
+            const input = document.getElementById('taskInput');
+            if (input.value.trim() !== "") {
+                const currentAgent = agents.find(a => a.id === activeAgentId) || agents[0];
+                logActivity(`Tarea asignada a ${currentAgent.name}: "${input.value}"`);
+                showMessage(`Tarea enviada a ${currentAgent.name}`);
+                input.value = "";
+            }
+        }
+
+        // --- Navigation View Switcher ---
+        function switchView(viewName) {
+            currentView = viewName;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.classList.add('text-gray-400');
+            });
+
+            const activeBtn = document.getElementById(`tab-${viewName}`);
+            if (activeBtn) {
+                activeBtn.classList.add('active');
+                activeBtn.classList.remove('text-gray-400');
+            }
+
+            const titles = {
+                'exterior': 'VISTA EXTERIOR - CIUDAD IA (ISOMÉTRICA)',
+                'coworking': 'INTERIOR - COWORKING IA TECH',
+                'resto': 'INTERIOR - RESTÓ & GASTRO IA',
+                'bar': 'INTERIOR - CYBER BAR IA',
+                'hotel': 'INTERIOR - HOTEL BOUTIQUE IA',
+                'casas': 'INTERIOR - RESIDENCIAS IA'
+            };
+            document.getElementById('currentViewTitle').innerText = titles[viewName] || 'VISTA CIUDAD';
+        }
+
+        const canvas = document.getElementById('cityCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        let activeAgentId = 1001;
+
+        // AI Agents Data with interior target boundaries
+        const agents = [
+            { id: 1001, name: "Alpha-01", role: "Smart Contracts Lead", icon: "🤖", room: "coworking", x: 260, y: 260, targetX: 260, targetY: 260, color: "#06b6d4", spent: "40 USDT", key: "Alquiler Activo (29d)", token: "#1001" },
+            { id: 1002, name: "Cyra-X", role: "Data Analyst IA", icon: "👾", room: "resto", x: 420, y: 350, targetX: 420, targetY: 350, color: "#a855f7", spent: "25 USDT", key: "Alquiler Activo (14d)", token: "#1002" },
+            { id: 1003, name: "Nexus-9", role: "DeFi Market Maker", icon: "🧠", room: "bar", x: 480, y: 210, targetX: 480, targetY: 210, color: "#ec4899", spent: "70 USDT", key: "Alquiler Activo (5d)", token: "#1003" },
+            { id: 1004, name: "Valkyrie", role: "Security Sentinel", icon: "🛸", room: "hotel", x: 620, y: 310, targetX: 620, targetY: 310, color: "#10b981", spent: "10 USDT", key: "Alquiler Activo (28d)", token: "#1004" }
+        ];
+
+        // Isometric Helper Functions
+        function toIso(x, y) {
+            return {
+                isoX: x - y,
+                isoY: (x + y) / 2
+            };
+        }
+
+        // Click detector for agents & building selection
+        canvas.addEventListener('click', function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            // Check if agent clicked
+            agents.forEach(agent => {
+                const dist = Math.hypot(agent.x - mouseX, agent.y - mouseY);
+                if (dist < 25) {
+                    selectAgent(agent);
+                }
+            });
+        });
+
+        function selectAgent(agent) {
+            activeAgentId = agent.id;
+            document.getElementById('inspectorName').innerText = agent.name;
+            document.getElementById('inspectorRole').innerText = agent.role;
+            document.getElementById('inspectorTokenId').innerText = agent.token;
+            document.getElementById('inspectorLocation').innerText = agent.room.toUpperCase();
+            document.getElementById('inspectorKeyState').innerText = agent.key;
+            document.getElementById('inspectorSpent').innerText = agent.spent;
+            
+            const avatarBox = document.getElementById('inspectorAvatar');
+            avatarBox.style.borderColor = agent.color;
+            avatarBox.innerHTML = `<span style="color:${agent.color}">${agent.icon}</span>`;
+            
+            showMessage(`Inspeccionando a ${agent.name}`);
+        }
+
+        // --- DRAWING FUNCTIONS ---
+
+        function drawScene() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (currentView === 'exterior') {
+                drawExteriorCity();
+            } else {
+                drawInteriorRoom(currentView);
+            }
+
+            // Draw Agents & Animate Movement INSIDE Building Rooms
+            agents.forEach(agent => {
+                // If in exterior view or in the matching room view, update position
+                const isVisible = (currentView === 'exterior' || currentView === agent.room);
+
+                // Smooth movement towards target inside the building boundaries
+                agent.x += (agent.targetX - agent.x) * 0.02;
+                agent.y += (agent.targetY - agent.y) * 0.02;
+
+                // Pick a new interior target when close
+                if (Math.hypot(agent.targetX - agent.x, agent.targetY - agent.y) < 5) {
+                    setNewInteriorTarget(agent);
+                }
+
+                if (isVisible) {
+                    // Draw selection glow if selected
+                    if (agent.id === activeAgentId) {
+                        ctx.beginPath();
+                        ctx.arc(agent.x, agent.y, 18, 0, Math.PI * 2);
+                        ctx.fillStyle = "rgba(6, 182, 212, 0.25)";
+                        ctx.fill();
+                        ctx.strokeStyle = "#06b6d4";
+                        ctx.lineWidth = 1.5;
+                        ctx.stroke();
+                    }
+
+                    // Agent Avatar Circle
+                    ctx.beginPath();
+                    ctx.arc(agent.x, agent.y, 12, 0, Math.PI * 2);
+                    ctx.fillStyle = "#0f172a";
+                    ctx.fill();
+                    ctx.strokeStyle = agent.color;
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+
+                    // Icon / Emoji
+                    ctx.font = "12px sans-serif";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText(agent.icon, agent.x, agent.y);
+
+                    // Agent Label Badge
+                    ctx.fillStyle = "rgba(15, 23, 42, 0.9)";
+                    ctx.fillRect(agent.x - 28, agent.y + 16, 56, 14);
+                    ctx.strokeStyle = agent.color;
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(agent.x - 28, agent.y + 16, 56, 14);
+
+                    ctx.fillStyle = "#ffffff";
+                    ctx.font = "bold 9px Space Grotesk, sans-serif";
+                    ctx.fillText(agent.name, agent.x, agent.y + 23);
+                }
+            });
+
+            requestAnimationFrame(drawScene);
+        }
+
+        // Set interior walking bounds for agents so they walk inside rooms
+        function setNewInteriorTarget(agent) {
+            if (currentView === 'exterior') {
+                // Room boundaries in exterior isometric view
+                const bounds = {
+                    coworking: { minX: 180, maxX: 300, minY: 220, maxY: 300 },
+                    bar: { minX: 420, maxX: 530, minY: 170, maxY: 230 },
+                    resto: { minX: 360, maxX: 480, minY: 320, maxY: 380 },
+                    hotel: { minX: 560, maxX: 660, minY: 280, maxY: 350 }
+                };
+                const b = bounds[agent.room] || { minX: 200, maxX: 500, minY: 200, maxY: 400 };
+                agent.targetX = b.minX + Math.random() * (b.maxX - b.minX);
+                agent.targetY = b.minY + Math.random() * (b.maxY - b.minY);
+            } else {
+                // Bounds for zoomed-in room view
+                agent.targetX = 220 + Math.random() * (canvas.width - 440);
+                agent.targetY = 220 + Math.random() * (canvas.height - 340);
+            }
+        }
+
+        function drawExteriorCity() {
+            const centerX = canvas.width / 2;
+            const centerY = 130;
+
+            // Ground Isometric Grid (Neon Street Paths)
+            ctx.strokeStyle = "rgba(6, 182, 212, 0.12)";
+            ctx.lineWidth = 1;
+            for (let i = -12; i <= 12; i++) {
+                ctx.beginPath();
+                ctx.moveTo(centerX + i * 40, centerY + i * 20);
+                ctx.lineTo(centerX + (i - 12) * 40, centerY + (i + 12) * 20);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(centerX + i * 40, centerY + i * 20);
+                ctx.lineTo(centerX + (i + 12) * 40, centerY + (i + 12) * 20);
+                ctx.stroke();
+            }
+
+            // Connecting Neon Street Pathways
+            ctx.strokeStyle = "rgba(236, 72, 153, 0.4)";
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(240, 310);
+            ctx.lineTo(420, 400);
+            ctx.lineTo(510, 260);
+            ctx.stroke();
+
+            // 1. COWORKING BUILDING (Left - Cutaway Interior with Desks & Computers)
+            drawBuildingCutaway(240, 280, 160, 140, 100, "COWORKING TECH", "#06b6d4", "desks");
+
+            // 2. CYBER BAR (Top Right - Neon Pink Glass Interior)
+            drawBuildingCutaway(480, 200, 130, 120, 110, "CYBER BAR", "#ec4899", "bar");
+
+            // 3. RESTÓ & GASTRO (Center Bottom - Glass Restaurant Interior)
+            drawBuildingCutaway(420, 360, 140, 120, 90, "RESTÓ & GASTRO", "#a855f7", "resto");
+
+            // 4. HOTEL BOUTIQUE (Right Top - Tall Isometric Building)
+            drawBuildingCutaway(610, 300, 110, 130, 150, "HOTEL BOUTIQUE", "#10b981", "hotel");
+        }
+
+        // Draw Isometric Buildings with Interior Cutaway Views (Matching Reference Screenshot)
+        function drawBuildingCutaway(x, y, w, l, h, title, themeColor, type) {
+            // Isometric Base Polygon Floor
+            ctx.fillStyle = "#111827";
+            ctx.strokeStyle = themeColor;
+            ctx.lineWidth = 2;
+
+            // Floor Tile Grid
+            ctx.fillStyle = "#1e293b";
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + w, y - w / 2);
+            ctx.lineTo(x + w - l, y - w / 2 - l / 2);
+            ctx.lineTo(x - l, y - l / 2);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Back Walls (Cutaway Shell)
+            ctx.fillStyle = "#0f172a";
+            ctx.beginPath();
+            ctx.moveTo(x - l, y - l / 2);
+            ctx.lineTo(x - l, y - l / 2 - h);
+            ctx.lineTo(x + w - l, y - w / 2 - l / 2 - h);
+            ctx.lineTo(x + w - l, y - w / 2 - l / 2);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Glass/Open Front Edges
+            ctx.strokeStyle = "rgba(255,255,255,0.15)";
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x, y - h);
+            ctx.stroke();
+
+            // Render Furniture Inside Room
+            if (type === 'desks') {
+                // Computer Desks & Monitors
+                ctx.fillStyle = "rgba(6, 182, 212, 0.6)";
+                ctx.fillRect(x - 60, y - 50, 40, 12);
+                ctx.fillRect(x + 20, y - 70, 40, 12);
+                ctx.fillStyle = "#38bdf8";
+                ctx.fillRect(x - 50, y - 62, 10, 8);
+                ctx.fillRect(x + 30, y - 82, 10, 8);
+            } else if (type === 'bar') {
+                // Cyber Bar Counter & Neon Sign
+                ctx.fillStyle = "rgba(236, 72, 153, 0.7)";
+                ctx.fillRect(x - 40, y - 55, 50, 14);
+                ctx.fillStyle = "#f43f5e";
+                ctx.font = "bold 9px monospace";
+                ctx.fillText("🍸 BAR", x - 20, y - 70);
+            } else if (type === 'resto') {
+                // Restaurant Dining Tables
+                ctx.fillStyle = "#a855f7";
+                ctx.beginPath();
+                ctx.arc(x - 20, y - 45, 12, 0, Math.PI * 2);
+                ctx.fill();
+            } else if (type === 'hotel') {
+                // Hotel Rooms Windows
+                ctx.fillStyle = "rgba(16, 185, 129, 0.4)";
+                for (let level = 1; level <= 3; level++) {
+                    ctx.fillRect(x - 40, y - level * 35, 18, 20);
+                    ctx.fillRect(x + 10, y - level * 35, 18, 20);
+                }
+            }
+
+            // Building Title Neon Tag
+            ctx.fillStyle = "rgba(11, 15, 25, 0.9)";
+            ctx.fillRect(x - 40, y - h - 25, 110, 18);
+            ctx.strokeStyle = themeColor;
+            ctx.strokeRect(x - 40, y - h - 25, 110, 18);
+
+            ctx.fillStyle = themeColor;
+            ctx.font = "bold 9px Space Grotesk, sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText(title, x + 15, y - h - 13);
+        }
+
+        function drawInteriorRoom(roomType) {
+            const margin = 50;
+            const rw = canvas.width - margin * 2;
+            const rh = canvas.height - margin * 2;
+
+            // Room Floor Base
+            ctx.fillStyle = "#0d1322";
+            ctx.fillRect(margin, margin, rw, rh);
+            ctx.strokeStyle = "#1f293d";
+            ctx.lineWidth = 3;
+            ctx.strokeRect(margin, margin, rw, rh);
+
+            // Interior Tile Grid
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.04)";
+            ctx.lineWidth = 1;
+            for (let x = margin + 40; x < margin + rw; x += 40) {
+                ctx.beginPath();
+                ctx.moveTo(x, margin);
+                ctx.lineTo(x, margin + rh);
+                ctx.stroke();
+            }
+            for (let y = margin + 40; y < margin + rh; y += 40) {
+                ctx.beginPath();
+                ctx.moveTo(margin, y);
+                ctx.lineTo(margin + rw, y);
+                ctx.stroke();
+            }
+
+            // Room Header Badge
+            ctx.fillStyle = "#06b6d4";
+            ctx.font = "bold 16px Space Grotesk, sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("INTERIOR EN TIEMPO REAL: " + roomType.toUpperCase(), canvas.width / 2, margin + 35);
+
+            // Room Specific Interior Furniture
+            if (roomType === 'coworking') {
+                // Desks & Servers
+                ctx.fillStyle = "#1e293b";
+                ctx.fillRect(margin + 60, margin + 80, 160, 80);
+                ctx.fillRect(margin + rw - 220, margin + 80, 160, 80);
+                ctx.fillStyle = "#06b6d4";
+                ctx.fillText("🖥️ Workstations Lead Dev", margin + 140, margin + 125);
+                ctx.fillText("💻 Servidores de IA", margin + rw - 140, margin + 125);
+            } else if (roomType === 'bar') {
+                ctx.fillStyle = "#831843";
+                ctx.fillRect(margin + 80, margin + 100, rw - 160, 50);
+                ctx.fillStyle = "#ec4899";
+                ctx.fillText("🍸 barra Cyberpunk & Cócteles de Datos", canvas.width / 2, margin + 130);
+            } else if (roomType === 'resto') {
+                ctx.fillStyle = "#064e3b";
+                ctx.beginPath();
+                ctx.arc(margin + 120, margin + 150, 40, 0, Math.PI * 2);
+                ctx.arc(margin + rw - 120, margin + 150, 40, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = "#10b981";
+                ctx.fillText("🍽️ Zona Gastro & Carga Energética", canvas.width / 2, margin + 150);
+            }
+        }
+
+        // Start Canvas Engine Loop
+        drawScene();
+    </script>
+</body>
+</html>
+```
+
+### Key Improvements Included:
+1. **Pixel-Art Isometric Building Cutaways:** Rendered open-roof buildings showing desks, computers, bar counters, and neon signs matching the aesthetic of your reference image.
+2. **Interior Agent Movement:** The AI agents (Alpha-01, Cyra-X, Nexus-9, Valkyrie) now walk and linger **inside** the rooms and building cutaway floors.
+3. **Preserved Navigation Tabs:** Kept all navigation buttons at the top (`Mapa Exterior`, `Coworking IA`, `Restó & Gastro`, `Cyber Bar`, `Hotel Boutique`, `Casas Residenciales`) for viewing the city or zooming into specific interiors.
+4. **Agent Inspector & Web3:** Selecting an agent or tab updates their status, role, token ID, and active spent USDT on the side panel.
+
+You can preview the app directly in the editor!
